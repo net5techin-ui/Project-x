@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TN28 Admin Panel - Product Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <span class="logo-text">TN28</span>
+        <span class="logo-sub">Admin Panel</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-tab="dashboard"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a href="#" class="nav-item" data-tab="products"><i class="fas fa-box"></i> Products</a>
+        <a href="#" class="nav-item" data-tab="add-product"><i class="fas fa-plus-circle"></i> Add Product</a>
+        <a href="#" class="nav-item" data-tab="media"><i class="fas fa-images"></i> Media Library</a>
+        <a href="#" class="nav-item" data-tab="orders"><i class="fas fa-shopping-cart"></i> Orders</a>
+        <a href="#" class="nav-item" data-tab="brands"><i class="fas fa-tags"></i> Brands</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="index.html"><i class="fas fa-store"></i> View Store</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <header class="admin-header">
+        <h1 id="pageTitle">Dashboard</h1>
+        <div class="admin-user">
+          <span>Admin</span>
+          <div class="admin-avatar"><i class="fas fa-user"></i></div>
+        </div>
+      </header>
+
+      <!-- Dashboard Tab -->
+      <div class="tab-content active" id="tab-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-icon" style="background:#e8f4fd;color:#2196F3"><i class="fas fa-box"></i></div><div><h3 id="totalProducts">0</h3><p>Total Products</p></div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:#e8f5e9;color:#4CAF50"><i class="fas fa-shopping-cart"></i></div><div><h3 id="totalOrders">0</h3><p>Total Orders</p></div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:#fff3e0;color:#FF9800"><i class="fas fa-rupee-sign"></i></div><div><h3 id="totalRevenue">₹0</h3><p>Revenue</p></div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:#fce4ec;color:#E91E63"><i class="fas fa-tags"></i></div><div><h3 id="totalBrands">0</h3><p>Brands</p></div></div>
+        </div>
+        <div class="card"><h3>Recent Products</h3><div id="recentProducts"></div></div>
+      </div>
+
+      <!-- Products Tab -->
+      <div class="tab-content" id="tab-products">
+        <div class="card">
+          <div class="card-header"><h3>All Products</h3><button class="btn-admin" onclick="switchTab('add-product')"><i class="fas fa-plus"></i> Add New</button></div>
+          <div class="table-wrap"><table class="admin-table"><thead><tr><th>Image</th><th>Name</th><th>Brand</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead><tbody id="productsTable"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- Add Product Tab -->
+      <div class="tab-content" id="tab-add-product">
+        <div class="card">
+          <h3 id="formTitle">Add New Product</h3>
+          <form id="productForm" class="product-form">
+            <input type="hidden" id="editId">
+            <input type="hidden" id="pImage" value="">
+
+            <!-- Image Upload Section -->
+            <div class="image-upload-section">
+              <label class="upload-label"><i class="fas fa-camera"></i> Product Image *</label>
+              <div class="upload-wrapper">
+                <div class="upload-dropzone" id="uploadDropzone">
+                  <div class="upload-placeholder" id="uploadPlaceholder">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h4>Drag & Drop your image here</h4>
+                    <p>or click to browse files</p>
+                    <span class="upload-formats">Supports: JPG, PNG, WebP (Max 5MB)</span>
+                  </div>
+                  <div class="upload-preview" id="uploadPreview" style="display:none">
+                    <img src="" alt="Preview" id="previewImg">
+                    <button type="button" class="preview-remove" id="removeImage" title="Remove image"><i class="fas fa-times"></i></button>
+                    <div class="preview-info" id="previewInfo"></div>
+                  </div>
+                  <input type="file" id="imageFileInput" accept="image/jpeg,image/png,image/webp" style="display:none">
+                </div>
+                <div class="upload-actions">
+                  <button type="button" class="btn-admin btn-upload" id="btnBrowse"><i class="fas fa-folder-open"></i> Browse Files</button>
+                  <button type="button" class="btn-admin btn-upload" id="btnMediaLib"><i class="fas fa-images"></i> Media Library</button>
+                  <div class="upload-or"><span>or paste URL</span></div>
+                  <div class="url-input-wrap">
+                    <input type="url" id="pImageUrl" placeholder="https://example.com/image.jpg" class="url-input">
+                    <button type="button" class="btn-admin btn-url-load" id="btnLoadUrl"><i class="fas fa-link"></i></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group"><label>Product Name *</label><input type="text" id="pName" required placeholder="e.g. Slim Fit Formal Shirt"></div>
+              <div class="form-group"><label>Brand *</label><input type="text" id="pBrand" required placeholder="e.g. Raymond" list="brandsList"><datalist id="brandsList"><option value="Raymond"><option value="Allen Solly"><option value="Van Heusen"><option value="Peter England"><option value="Louis Philippe"><option value="Arrow"><option value="Park Avenue"><option value="Blackberrys"></datalist></div>
+              <div class="form-group"><label>Category *</label><select id="pCategory" required><option value="formal">Formal</option><option value="casual">Casual</option><option value="ethnic">Ethnic</option><option value="party">Party Wear</option></select></div>
+              <div class="form-group"><label>Price (₹) *</label><input type="number" id="pPrice" required min="0" placeholder="1999"></div>
+              <div class="form-group"><label>Original Price (₹)</label><input type="number" id="pOriginalPrice" min="0" placeholder="2999"></div>
+              <div class="form-group"><label>Stock Quantity *</label><input type="number" id="pStock" required min="0" placeholder="50"></div>
+              <div class="form-group"><label>Fabric / Material</label><input type="text" id="pFabric" placeholder="e.g. Premium Cotton"></div>
+              <div class="form-group"><label>Sizes (comma separated) *</label><input type="text" id="pSizes" required placeholder="S, M, L, XL"></div>
+              <div class="form-group"><label>Colors (hex, comma separated)</label><input type="text" id="pColors" placeholder="#000000, #FFFFFF"></div>
+              <div class="form-group full-width"><label>Description</label><textarea id="pDescription" rows="3" placeholder="Short product description..."></textarea></div>
+              <div class="form-group"><label class="checkbox-wrap"><input type="checkbox" id="pIsNew"> Mark as New Arrival</label></div>
+              <div class="form-group"><label class="checkbox-wrap"><input type="checkbox" id="pIsSale"> On Sale</label></div>
+              <div class="form-group"><label class="checkbox-wrap"><input type="checkbox" id="pIsHot"> Hot / Trending</label></div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-admin btn-primary-admin"><i class="fas fa-save"></i> Save Product</button>
+              <button type="button" class="btn-admin btn-secondary" onclick="resetForm()"><i class="fas fa-times"></i> Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Media Library Tab -->
+      <div class="tab-content" id="tab-media">
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-images"></i> Media Library</h3>
+            <button class="btn-admin btn-primary-admin" id="btnUploadMedia"><i class="fas fa-upload"></i> Upload New</button>
+          </div>
+          <input type="file" id="mediaUploadInput" accept="image/jpeg,image/png,image/webp" multiple style="display:none">
+          <div class="media-stats" id="mediaStats"></div>
+          <div class="media-grid" id="mediaGrid">
+            <div class="media-empty" id="mediaEmpty">
+              <i class="fas fa-images"></i>
+              <h4>No images uploaded yet</h4>
+              <p>Upload images to build your product gallery</p>
+              <button class="btn-admin btn-primary-admin" onclick="document.getElementById('mediaUploadInput').click()"><i class="fas fa-upload"></i> Upload Images</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Orders Tab -->
+      <div class="tab-content" id="tab-orders">
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-shopping-cart"></i> Customer Orders</h3>
+            <div class="order-filters">
+              <button class="btn-admin btn-filter active" data-status="all" onclick="filterOrders('all')">All</button>
+              <button class="btn-admin btn-filter" data-status="pending" onclick="filterOrders('pending')">Pending</button>
+              <button class="btn-admin btn-filter" data-status="confirmed" onclick="filterOrders('confirmed')">Confirmed</button>
+              <button class="btn-admin btn-filter" data-status="shipped" onclick="filterOrders('shipped')">Shipped</button>
+              <button class="btn-admin btn-filter" data-status="delivered" onclick="filterOrders('delivered')">Delivered</button>
+            </div>
+          </div>
+          <div id="ordersContainer">
+            <div id="ordersEmpty" style="color:#999;padding:40px 0;text-align:center">
+              <i class="fas fa-inbox" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3"></i>
+              No orders yet.
+            </div>
+            <div id="ordersList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Brands Tab -->
+      <div class="tab-content" id="tab-brands">
+        <div class="card"><h3>Brand Management</h3><div id="brandsList2" class="brands-list"></div></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container" id="adminToast"></div>
+  <script type="module" src="admin.js"></script>
+</body>
+</html>
