@@ -417,24 +417,9 @@
     </div>
 
     <div class="checkout-content-p">
-      <div class="checkout-step active" id="stepAddress">
-        <form id="addressForm">
-          <div class="co-section">
-            <div class="form-group-p"><label>RECIPIENT'S NAME</label><input type="text" id="coFullName" placeholder="Enter recipient name" required></div>
-            <div class="form-group-p"><label>RECIPIENT'S PHONE</label><div class="phone-input-wrap"><img src="https://flagcdn.com/w20/in.png" alt="IN"><span>(+91)</span><input type="tel" id="coPhone" placeholder="Mobile Number" required></div></div>
-            <div class="co-grid-p">
-              <div class="form-group-p"><label>PIN CODE</label><input type="text" id="coPincode" placeholder="6-digit PIN" required></div>
-              <div class="form-group-p"><label>STATE</label><select id="coState" required><option value="Tamil Nadu">Tamil Nadu</option><option value="Kerala">Kerala</option><option value="Karnataka">Karnataka</option><option value="Andhra Pradesh">Andhra Pradesh</option></select></div>
-            </div>
-            <div class="form-group-p"><label>CITY / TOWN / DISTRICT</label><input type="text" id="coCity" placeholder="Enter city" required></div>
-            <div class="form-group-p"><label>FULL ADDRESS</label><textarea id="coAddress" placeholder="House No, Street Name, Landmark" required rows="3"></textarea></div>
-          </div>
-          <button type="button" class="btn-checkout-next" onclick="nextStep('Payment')">NEXT</button>
-        </form>
-      </div>
-
-      <div class="checkout-step" id="stepPayment">
-        <p style="font-size:13px;color:#64748B;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;font-weight:600;">UPI APPS</p>
+      <!-- STEP 1: PAYMENT -->
+      <div class="checkout-step active" id="stepPayment">
+        <p style="font-size:13px;color:#64748B;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;font-weight:600;">SELECT UPI APP</p>
         <div class="payment-options-list">
           <div class="payment-option-item active" onclick="selectPayment('phonepe')">
             <div class="payment-icon" style="background:#5f259f;color:white;"><i class="fas fa-mobile-alt"></i></div>
@@ -453,27 +438,28 @@
           </div>
           <div class="payment-option-item" onclick="selectPayment('supermoney')">
             <div class="payment-icon" style="background:#6366F1;color:white;"><i class="fas fa-bolt"></i></div>
-            <div class="payment-text"><strong>super.money</strong><small>Get 5% cashback</small></div>
-            <div class="payment-arrow"><i class="far fa-circle"></i></div>
-          </div>
-          <div class="payment-option-item" onclick="selectPayment('credupi')">
-            <div class="payment-icon" style="background:#000;color:white;"><i class="fas fa-shield-alt"></i></div>
-            <div class="payment-text"><strong>CRED UPI</strong></div>
-            <div class="payment-arrow"><i class="far fa-circle"></i></div>
-          </div>
-          <div class="payment-option-item" onclick="selectPayment('bhim')">
-            <div class="payment-icon" style="background:#0D47A1;color:white;"><i class="fas fa-rupee-sign"></i></div>
-            <div class="payment-text"><strong>BHIM</strong></div>
-            <div class="payment-arrow"><i class="far fa-circle"></i></div>
-          </div>
-          <div class="payment-option-item" onclick="selectPayment('other')">
-            <div class="payment-icon" style="background:#64748B;color:white;"><i class="fas fa-ellipsis-h"></i></div>
-            <div class="payment-text"><strong>Other Apps</strong></div>
+            <div class="payment-text"><strong>super.money</strong></div>
             <div class="payment-arrow"><i class="far fa-circle"></i></div>
           </div>
         </div>
-        <button type="button" class="btn-checkout-next" onclick="nextStep('Summary')">PROCEED TO PAY</button>
+        <button type="button" class="btn-checkout-next" onclick="nextStep('Address')">PROCEED TO ADDRESS</button>
       </div>
+
+      <!-- STEP 2: ADDRESS -->
+      <div class="checkout-step" id="stepAddress">
+        <form id="addressForm">
+          <div class="co-section">
+            <div class="form-group-p"><label>RECIPIENT'S NAME</label><input type="text" id="coFullName" placeholder="Enter recipient name" required></div>
+            <div class="form-group-p"><label>RECIPIENT'S PHONE</label><div class="phone-input-wrap"><img src="https://flagcdn.com/w20/in.png" alt="IN"><span>(+91)</span><input type="tel" id="coPhone" placeholder="Mobile Number" required></div></div>
+            <div class="co-grid-p">
+              <div class="form-group-p"><label>PIN CODE</label><input type="text" id="coPincode" placeholder="6-digit PIN" required></div>
+              <div class="form-group-p"><label>STATE</label><select id="coState" required><option value="Tamil Nadu">Tamil Nadu</option><option value="Kerala">Kerala</option><option value="Karnataka">Karnataka</option><option value="Andhra Pradesh">Andhra Pradesh</option></select></div>
+            </div>
+            <div class="form-group-p"><label>CITY / TOWN / DISTRICT</label><input type="text" id="coCity" placeholder="Enter city" required></div>
+            <div class="form-group-p"><label>FULL ADDRESS</label><textarea id="coAddress" placeholder="House No, Street Name, Landmark" required rows="3"></textarea></div>
+          </div>
+          <button type="button" class="btn-checkout-next" onclick="nextStep('Summary')">NEXT</button>
+        </form>
       </div>
 
       <!-- STEP 3: SUMMARY -->
@@ -487,7 +473,7 @@
           </div>
         </div>
         <div class="payment-method-tag">
-          <i class="fas fa-lock"></i> Secure UPI Payment to 8637489726
+          <i class="fas fa-lock"></i> Secure UPI Payment (10% Shipping) to 8637489726
         </div>
         <button type="button" class="btn-checkout-next" style="background:#000; color:#fff;" onclick="handleCheckoutFinal()">
           <i class="fas fa-mobile-alt"></i> PAY NOW & PLACE ORDER

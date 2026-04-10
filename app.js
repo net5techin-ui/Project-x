@@ -362,7 +362,7 @@ async function handleCheckout(e) {
     customer: { name: document.getElementById('coFullName').value, email: document.getElementById('coEmail').value, phone: document.getElementById('coPhone').value },
     address: { street: document.getElementById('coAddress').value, city: document.getElementById('coCity').value, state: document.getElementById('coState').value, pincode: document.getElementById('coPincode').value, landmark: document.getElementById('coLandmark').value },
     items: cart.map(i => ({ name: i.name, brand: i.brand, price: i.price, qty: i.qty, size: i.size, image: i.image, productId: i.id || i.fbId })),
-    itemCount: cart.reduce((s,i) => s + i.qty, 0), total, shipping: total >= 999 ? 0 : 99, grandTotal: total >= 999 ? total : total + 99
+    itemCount: cart.reduce((s,i) => s + i.qty, 0), total, shipping: Math.round(total * 0.10), grandTotal: Math.round(total * 1.10)
   };
   try {
     const result = await backend.placeOrder(payload);
@@ -381,9 +381,9 @@ function openCheckoutModal() {
   const items = document.getElementById('checkoutOrderItems');
   let total = 0;
   items.innerHTML = cart.map(i => { total += i.price * i.qty; return `<div style="display:flex;align-items:center;gap:12px;padding:10px;background:#F8FAFC;border-radius:8px;margin-bottom:8px"><img src="${i.image}" style="width:48px;height:60px;object-fit:cover;border-radius:6px"><div style="flex:1"><div style="font-weight:600;font-size:13px">${i.name}</div><div style="font-size:11px;color:#64748B">${i.brand} • Size: ${i.size} • Qty: ${i.qty}</div></div><div style="font-weight:700">₹${(i.price*i.qty).toLocaleString()}</div></div>`; }).join('');
-  const ship = total >= 999 ? 0 : 99;
+  const ship = Math.round(total * 0.10);
   document.getElementById('coSubtotal').textContent = `₹${total.toLocaleString()}`;
-  document.getElementById('coShipping').textContent = ship === 0 ? 'FREE' : `₹${ship}`;
+  document.getElementById('coShipping').textContent = `₹${ship.toLocaleString()}`;
   document.getElementById('coTotal').textContent = `₹${(total + ship).toLocaleString()}`;
   openModal('checkout');
 }
@@ -412,8 +412,11 @@ window.filterByCategory = (c) => renderFeatured(c, 'category');
 
 // ─── MULTI-STEP CHECKOUT LOGIC ───
 window.nextStep = (step) => {
-  // Simple validation for Address step
-  if (step === 'Payment') {
+  if (step === 'Address') {
+    document.getElementById('checkoutMainTitle').textContent = 'Add Delivery Address';
+    document.getElementById('checkoutBackBtn').style.display = 'flex';
+  } else if (step === 'Summary') {
+    // Validate Address fields before moving to Summary
     const name = document.getElementById('coFullName').value;
     const phone = document.getElementById('coPhone').value;
     const address = document.getElementById('coAddress').value;
@@ -421,14 +424,14 @@ window.nextStep = (step) => {
     const pincode = document.getElementById('coPincode').value;
     
     if (!name || !phone || !address || !city || !pincode) {
-      showToast('Please fill all required fields', 'error');
+      showToast('Please fill all required delivery fields', 'error');
       return;
     }
     
-    document.getElementById('checkoutMainTitle').textContent = 'Select Payment Method';
-    document.getElementById('checkoutBackBtn').style.display = 'flex';
-  } else if (step === 'Summary') {
     document.getElementById('checkoutMainTitle').textContent = 'Order Summary';
+  } else if (step === 'Payment') {
+    document.getElementById('checkoutMainTitle').textContent = 'Select Payment Method';
+    document.getElementById('checkoutBackBtn').style.display = 'none';
   }
 
   // Toggle steps
@@ -466,7 +469,7 @@ window.handleCheckoutFinal = async () => {
 
   const orderId = 'TN28-' + Date.now().toString(36).toUpperCase();
   const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
-  const ship = total >= 999 ? 0 : 99;
+  const ship = Math.round(total * 0.10);
   const grandTotal = total + ship;
 
   const payload = {
@@ -551,13 +554,10 @@ document.getElementById('checkoutBackBtn')?.addEventListener('click', () => {
   const paymentStep = document.getElementById('stepPayment');
   const summaryStep = document.getElementById('stepSummary');
 
-  if (paymentStep.classList.contains('active')) {
-    nextStep('Address');
-    document.getElementById('checkoutMainTitle').textContent = 'Add Delivery Address';
-    document.getElementById('checkoutBackBtn').style.display = 'none';
-  } else if (summaryStep.classList.contains('active')) {
+  if (addressStep.classList.contains('active')) {
     nextStep('Payment');
-    document.getElementById('checkoutMainTitle').textContent = 'Select Payment Method';
+  } else if (summaryStep.classList.contains('active')) {
+    nextStep('Address');
   }
 });
 
