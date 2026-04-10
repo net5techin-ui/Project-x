@@ -13,14 +13,7 @@
 </head>
 <body>
 
-  <!-- ============ PRELOADER ============ -->
-  <div class="preloader" id="preloader">
-    <div class="preloader-inner">
-      <img src="./assets/images/logo.jpg" alt="TN28" class="preloader-logo">
-      <div class="preloader-bar"><div class="preloader-fill"></div></div>
-      <p class="preloader-text">Loading Premium Collection...</p>
-    </div>
-  </div>
+
 
   <!-- ============ ANNOUNCEMENT BAR ============ -->
   <div class="announcement-bar" id="announcementBar">
@@ -47,10 +40,6 @@
         <button class="header-icon-btn" id="mobileMenuBtn" aria-label="Menu">
           <i class="fas fa-bars"></i>
         </button>
-        <div class="location-pill" id="locationPill">
-          <i class="fas fa-map-marker-alt"></i>
-          <span id="userLocation">Detecting...</span>
-        </div>
       </div>
 
       <!-- Center: Logo -->
@@ -65,13 +54,14 @@
         <button class="header-icon-btn" id="searchBtn" aria-label="Search">
           <i class="fas fa-search"></i>
         </button>
-        <button class="header-icon-btn" id="authBtn" aria-label="Account">
-          <i class="fas fa-user"></i>
-        </button>
-        <button class="header-icon-btn has-badge" id="wishlistBtn" aria-label="Wishlist">
-          <i class="fas fa-heart"></i>
-          <span class="icon-badge" id="wishlistBadge">0</span>
-        </button>
+
+        <div class="location-pill" style="display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--bg);border-radius:var(--radius-full);font-size:12px;color:var(--navy);font-weight:600;margin:0 10px; border:1px solid var(--border);">
+          <i class="fas fa-map-marker-alt" style="color:var(--gold);"></i>
+          <span id="userLocation">Rasipuram, Namakkal - 637 408</span>
+        </div>
+
+
+
         <button class="header-icon-btn has-badge" id="cartBtn" aria-label="Cart">
           <i class="fas fa-shopping-bag"></i>
           <span class="icon-badge" id="cartBadge">0</span>
@@ -87,12 +77,12 @@
         <li class="nav-dropdown-wrap">
           <a href="#brands" class="nav-link">Brands <i class="fas fa-chevron-down"></i></a>
           <div class="mega-dropdown">
-            <a href="#featured" onclick="filterByBrand('Allen Solly')">Allen Solly</a>
-            <a href="#featured" onclick="filterByBrand('Van Heusen')">Van Heusen</a>
-            <a href="#featured" onclick="filterByBrand('Peter England')">Peter England</a>
-            <a href="#featured" onclick="filterByBrand('Raymond')">Raymond</a>
-            <a href="#featured" onclick="filterByBrand('Louis Philippe')">Louis Philippe</a>
-            <a href="#featured" onclick="filterByBrand('Arrow')">Arrow</a>
+            <a href="#featured" onclick="filterByBrand('Urban Design')">Urban Design</a>
+            <a href="#featured" onclick="filterByBrand('Some')">Some</a>
+            <a href="#featured" onclick="filterByBrand('U-Casuals')">U-Casuals</a>
+            <a href="#featured" onclick="filterByBrand('Jungle-jeans')">Jungle-jeans</a>
+            <a href="#featured" onclick="filterByBrand('WallPlus')">WallPlus</a>
+            <a href="#featured" onclick="filterByBrand('Haestor')">Haestor</a>
           </div>
         </li>
         <li class="nav-dropdown-wrap">
@@ -101,12 +91,12 @@
             <a href="#featured" onclick="filterByCategory('formal')">Formal Wear</a>
             <a href="#featured" onclick="filterByCategory('casual')">Casual Wear</a>
             <a href="#featured" onclick="filterByCategory('party')">Party Wear</a>
-            <a href="#featured" onclick="filterByCategory('ethnic')">Traditional</a>
+
             <a href="#featured" onclick="filterByCategory('sports')">Sports Wear</a>
           </div>
         </li>
         <li><a href="#featured" class="nav-link">Collection</a></li>
-        <li><a href="#sale" class="nav-link nav-sale">Sale</a></li>
+
       </ul>
     </nav>
   </header>
@@ -125,10 +115,9 @@
       <li><a href="#styles">Shop by Style</a></li>
       <li><a href="#featured">Collection</a></li>
       <li><a href="#offers">Offers</a></li>
-      <li><a href="#sale" class="mobile-sale">🔥 Sale</a></li>
     </ul>
     <div class="mobile-menu-foot">
-      <a href="#" id="mobileAuthBtn"><i class="fas fa-user"></i> Sign In / Register</a>
+
       <a href="admin.html"><i class="fas fa-cog"></i> Admin Panel</a>
     </div>
   </div>
@@ -179,10 +168,6 @@
         <div class="cat-icon-item reveal" onclick="filterByCategory('party')">
           <div class="cat-icon-circle"><i class="fas fa-glass-cheers"></i></div>
           <span>Party</span>
-        </div>
-        <div class="cat-icon-item reveal" onclick="filterByCategory('ethnic')">
-          <div class="cat-icon-circle"><i class="fas fa-vest"></i></div>
-          <span>Ethnic</span>
         </div>
         <div class="cat-icon-item reveal" onclick="filterByCategory('sports')">
           <div class="cat-icon-circle"><i class="fas fa-running"></i></div>
@@ -248,49 +233,24 @@
     </div>
     <div class="brands-marquee">
       <div class="brands-track">
-        <div class="brand-chip" onclick="filterByBrand('Allen Solly')">Allen Solly</div>
-        <div class="brand-chip" onclick="filterByBrand('Van Heusen')">Van Heusen</div>
-        <div class="brand-chip" onclick="filterByBrand('Peter England')">Peter England</div>
-        <div class="brand-chip" onclick="filterByBrand('Raymond')">Raymond</div>
-        <div class="brand-chip" onclick="filterByBrand('Louis Philippe')">Louis Philippe</div>
-        <div class="brand-chip" onclick="filterByBrand('Arrow')">Arrow</div>
-        <div class="brand-chip" onclick="filterByBrand('Blackberrys')">Blackberrys</div>
-        <div class="brand-chip" onclick="filterByBrand('Park Avenue')">Park Avenue</div>
+        <div class="brand-chip" onclick="filterByBrand('Urban Design')">Urban Design</div>
+        <div class="brand-chip" onclick="filterByBrand('Some')">Some</div>
+        <div class="brand-chip" onclick="filterByBrand('U-Casuals')">U-Casuals</div>
+        <div class="brand-chip" onclick="filterByBrand('Jungle-jeans')">Jungle-jeans</div>
+        <div class="brand-chip" onclick="filterByBrand('WallPlus')">WallPlus</div>
+        <div class="brand-chip" onclick="filterByBrand('Haestor')">Haestor</div>
         <!-- Duplicate for seamless loop -->
-        <div class="brand-chip">Allen Solly</div>
-        <div class="brand-chip">Van Heusen</div>
-        <div class="brand-chip">Peter England</div>
-        <div class="brand-chip">Raymond</div>
-        <div class="brand-chip">Louis Philippe</div>
-        <div class="brand-chip">Arrow</div>
-        <div class="brand-chip">Blackberrys</div>
-        <div class="brand-chip">Park Avenue</div>
+        <div class="brand-chip">Urban Design</div>
+        <div class="brand-chip">Some</div>
+        <div class="brand-chip">U-Casuals</div>
+        <div class="brand-chip">Jungle-jeans</div>
+        <div class="brand-chip">WallPlus</div>
+        <div class="brand-chip">Haestor</div>
       </div>
     </div>
   </section>
 
-  <!-- ============ SALE TIMER ============ -->
-  <section class="sale-hero" id="offers">
-    <div class="sale-hero-bg"></div>
-    <div class="sale-hero-content">
-      <span class="sale-tag anim-up">⚡ LIMITED TIME OFFER</span>
-      <h2 class="sale-title anim-up d1">MEGA <span>SALE</span></h2>
-      <div class="sale-percent anim-up d2">
-        <span class="sale-num">50</span><sup>%</sup> <span class="sale-off">OFF</span>
-      </div>
-      <p class="sale-desc anim-up d2">On select premium brands • Code: <strong>TN28MEGA</strong></p>
-      <div class="sale-timer anim-up d3">
-        <div class="timer-box"><span id="timerDays">03</span><small>Days</small></div>
-        <div class="timer-sep">:</div>
-        <div class="timer-box"><span id="timerHours">12</span><small>Hours</small></div>
-        <div class="timer-sep">:</div>
-        <div class="timer-box"><span id="timerMins">45</span><small>Mins</small></div>
-        <div class="timer-sep">:</div>
-        <div class="timer-box"><span id="timerSecs">30</span><small>Secs</small></div>
-      </div>
-      <a href="#sale" class="btn-sale-cta anim-up d3"><i class="fas fa-bolt"></i> SHOP THE SALE</a>
-    </div>
-  </section>
+
 
   <!-- ============ FEATURED PRODUCTS ============ -->
   <section class="section" id="featured">
@@ -304,7 +264,7 @@
         <button class="filter-btn active" data-filter="all">All</button>
         <button class="filter-btn" data-filter="formal">Formal</button>
         <button class="filter-btn" data-filter="casual">Casual</button>
-        <button class="filter-btn" data-filter="ethnic">Ethnic</button>
+
         <button class="filter-btn" data-filter="party">Party</button>
       </div>
       <div class="products-grid" id="featuredGrid"></div>
@@ -313,16 +273,7 @@
   </section>
 
   <!-- ============ SALE PRODUCTS ============ -->
-  <section class="section sale-products-section" id="sale">
-    <div class="container">
-      <div class="section-head reveal">
-        <span class="section-tag sale-tag-red">🔥 HOT DEALS</span>
-        <h2 class="section-title">On Sale Now</h2>
-        <p class="section-sub">Incredible prices — limited time only</p>
-      </div>
-      <div class="products-grid" id="saleGrid"></div>
-    </div>
-  </section>
+
 
   <!-- ============ NEWSLETTER ============ -->
   <section class="newsletter-section">
@@ -349,12 +300,12 @@
         <h2 class="section-title">Follow Our Style</h2>
       </div>
       <div class="insta-grid">
-        <div class="insta-item reveal" style="background-image:url('https://images.unsplash.com/photo-1617137968427-85924c800a22?w=400&q=80')"><div class="insta-hover"><i class="fab fa-instagram"></i></div></div>
-        <div class="insta-item reveal" style="background-image:url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80')"><div class="insta-hover"><i class="fab fa-instagram"></i></div></div>
-        <div class="insta-item reveal" style="background-image:url('https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&q=80')"><div class="insta-hover"><i class="fab fa-instagram"></i></div></div>
-        <div class="insta-item reveal" style="background-image:url('https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?w=400&q=80')"><div class="insta-hover"><i class="fab fa-instagram"></i></div></div>
-        <div class="insta-item reveal" style="background-image:url('https://images.unsplash.com/photo-1600091166971-7f9faad6c1e2?w=400&q=80')"><div class="insta-hover"><i class="fab fa-instagram"></i></div></div>
-        <div class="insta-item reveal" style="background-image:url('https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?w=400&q=80')"><div class="insta-hover"><i class="fab fa-instagram"></i></div></div>
+        <a href="https://www.instagram.com/tn28.mensfashionstore?igsh=dHdvMnl1cmR4cjll" target="_blank" class="insta-item reveal" style="background-image:url('https://images.unsplash.com/photo-1617137968427-85924c800a22?w=400&q=80')"><div class="insta-hover"><i class="fab fa-instagram"></i></div></a>
+        <a href="https://www.instagram.com/tn28.mensfashionstore?igsh=dHdvMnl1cmR4cjll" target="_blank" class="insta-item reveal" style="background-image:url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80')"><div class="insta-hover"><i class="fab fa-instagram"></i></div></a>
+        <a href="https://www.instagram.com/tn28.mensfashionstore?igsh=dHdvMnl1cmR4cjll" target="_blank" class="insta-item reveal" style="background-image:url('https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&q=80')"><div class="insta-hover"><i class="fab fa-instagram"></i></div></a>
+        <a href="https://www.instagram.com/tn28.mensfashionstore?igsh=dHdvMnl1cmR4cjll" target="_blank" class="insta-item reveal" style="background-image:url('https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?w=400&q=80')"><div class="insta-hover"><i class="fab fa-instagram"></i></div></a>
+        <a href="https://www.instagram.com/tn28.mensfashionstore?igsh=dHdvMnl1cmR4cjll" target="_blank" class="insta-item reveal" style="background-image:url('https://images.unsplash.com/photo-1600091166971-7f9faad6c1e2?w=400&q=80')"><div class="insta-hover"><i class="fab fa-instagram"></i></div></a>
+        <a href="https://www.instagram.com/tn28.mensfashionstore?igsh=dHdvMnl1cmR4cjll" target="_blank" class="insta-item reveal" style="background-image:url('https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?w=400&q=80')"><div class="insta-hover"><i class="fab fa-instagram"></i></div></a>
       </div>
     </div>
   </section>
@@ -368,11 +319,8 @@
             <img src="./assets/images/logo.jpg" alt="TN28" class="footer-logo-img">
             <p>Your destination for premium menswear. Curated collections of the finest brands and styles for the modern gentleman.</p>
             <div class="social-links">
-              <a href="#"><i class="fab fa-facebook-f"></i></a>
-              <a href="#"><i class="fab fa-instagram"></i></a>
-              <a href="#"><i class="fab fa-twitter"></i></a>
-              <a href="#"><i class="fab fa-youtube"></i></a>
-              <a href="#"><i class="fab fa-pinterest-p"></i></a>
+              <a href="https://www.facebook.com/share/16tDmJK7hB/" target="_blank"><i class="fab fa-facebook-f"></i></a>
+              <a href="https://www.instagram.com/tn28.mensfashionstore?igsh=dHdvMnl1cmR4cjll" target="_blank"><i class="fab fa-instagram"></i></a>
             </div>
           </div>
           <div class="footer-col">
@@ -382,7 +330,7 @@
               <li><a href="#brands">Brands</a></li>
               <li><a href="#styles">Styles</a></li>
               <li><a href="#offers">Offers</a></li>
-              <li><a href="#sale">Sale</a></li>
+
             </ul>
           </div>
           <div class="footer-col">
@@ -398,10 +346,9 @@
           <div class="footer-col">
             <h4>Contact</h4>
             <ul class="contact-list">
-              <li><i class="fas fa-map-marker-alt"></i> 123, Fashion St, Mumbai</li>
-              <li><i class="fas fa-phone"></i> +91 98765 43210</li>
-              <li><i class="fas fa-envelope"></i> hello@tn28fashion.com</li>
-              <li><i class="fas fa-clock"></i> Mon-Sat: 10AM-9PM</li>
+              <li><i class="fas fa-map-marker-alt"></i> 26A, Theradi Street,<br>Rasipuram, Namakkal - 637 408</li>
+              <li><i class="fas fa-phone"></i> +91 95002 67828</li>
+              <li><i class="fas fa-envelope"></i> tn28fashions@gmail.com</li>
             </ul>
           </div>
         </div>
@@ -426,9 +373,8 @@
   <div class="cart-overlay" id="cartOverlay"></div>
   <div class="cart-sidebar" id="cartSidebar">
     <div class="cart-header"><h3><i class="fas fa-shopping-bag"></i> Your Cart</h3><button class="header-icon-btn" id="closeCart"><i class="fas fa-times"></i></button></div>
-    <div class="cart-items" id="cartItems">
-      <div class="cart-empty" id="cartEmpty"><i class="fas fa-shopping-bag"></i><p>Your cart is empty</p><a href="#featured" class="btn-dark">Continue Shopping</a></div>
-    </div>
+    <div class="cart-empty" id="cartEmpty"><i class="fas fa-shopping-bag"></i><p>Your cart is empty</p><a href="#featured" class="btn-dark">Continue Shopping</a></div>
+    <div class="cart-items" id="cartItems"></div>
     <div class="cart-footer" id="cartFooter" style="display:none;">
       <div class="cart-total"><span>Subtotal</span><span id="cartTotal">₹0</span></div>
       <p class="cart-note">Shipping & taxes calculated at checkout</p>
@@ -457,69 +403,97 @@
     </div>
   </div>
 
-  <!-- ============ AUTH MODAL ============ -->
-  <div class="modal-overlay" id="authOverlay"></div>
-  <div class="modal auth-modal" id="authModal">
-    <button class="modal-close-btn" id="closeAuth"><i class="fas fa-times"></i></button>
-    <div class="auth-content">
-      <img src="./assets/images/logo.jpg" alt="TN28" class="auth-logo">
-      <div id="loginForm">
-        <h2>Welcome Back</h2>
-        <p>Sign in to your TN28 account</p>
-        <form id="loginFormEl">
-          <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com" required></div>
-          <div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••" required></div>
-          <button type="submit" class="btn-auth-submit">SIGN IN</button>
-        </form>
-        <p class="auth-switch">Don't have an account? <a href="#" id="showRegister">Create one</a></p>
-      </div>
-      <div id="registerForm" style="display:none;">
-        <h2>Create Account</h2>
-        <p>Join TN28 for exclusive deals</p>
-        <form id="registerFormEl">
-          <div class="form-group"><label>Full Name</label><input type="text" id="regName" placeholder="John Doe" required></div>
-          <div class="form-group"><label>Email</label><input type="email" id="regEmail" placeholder="you@example.com" required></div>
-          <div class="form-group"><label>Password</label><input type="password" id="regPassword" placeholder="Min 8 characters" required minlength="8"></div>
-          <button type="submit" class="btn-auth-submit">CREATE ACCOUNT</button>
-        </form>
-        <p class="auth-switch">Already have an account? <a href="#" id="showLogin">Sign in</a></p>
-      </div>
-    </div>
-  </div>
+
 
   <!-- ============ CHECKOUT MODAL ============ -->
   <div class="modal-overlay" id="checkoutOverlay"></div>
   <div class="modal checkout-modal" id="checkoutModal">
-    <button class="modal-close-btn" onclick="closeModal('checkout')"><i class="fas fa-times"></i></button>
-    <div class="checkout-content">
-      <div class="checkout-header"><i class="fas fa-lock"></i><h2>Secure Checkout</h2><p>Complete your order details</p></div>
-      <form id="checkoutForm">
-        <div class="co-section"><h3><i class="fas fa-user"></i> Customer Info</h3>
-          <div class="co-grid">
-            <div class="form-group"><label>Full Name *</label><input type="text" id="coFullName" required></div>
-            <div class="form-group"><label>Email *</label><input type="email" id="coEmail" required></div>
-            <div class="form-group"><label>Phone *</label><input type="tel" id="coPhone" required></div>
+    <div class="checkout-header-premium">
+      <button class="modal-back-btn" id="checkoutBackBtn" style="display:none;"><i class="fas fa-arrow-left"></i></button>
+      <div class="checkout-title-wrap">
+        <h2 id="checkoutMainTitle">Add Delivery Address</h2>
+      </div>
+      <button class="modal-close-btn-p" onclick="closeModal('checkout')"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="checkout-content-p">
+      <div class="checkout-step active" id="stepAddress">
+        <form id="addressForm">
+          <div class="co-section">
+            <div class="form-group-p"><label>RECIPIENT'S NAME</label><input type="text" id="coFullName" placeholder="Enter recipient name" required></div>
+            <div class="form-group-p"><label>RECIPIENT'S PHONE</label><div class="phone-input-wrap"><img src="https://flagcdn.com/w20/in.png" alt="IN"><span>(+91)</span><input type="tel" id="coPhone" placeholder="Mobile Number" required></div></div>
+            <div class="co-grid-p">
+              <div class="form-group-p"><label>PIN CODE</label><input type="text" id="coPincode" placeholder="6-digit PIN" required></div>
+              <div class="form-group-p"><label>STATE</label><select id="coState" required><option value="Tamil Nadu">Tamil Nadu</option><option value="Kerala">Kerala</option><option value="Karnataka">Karnataka</option><option value="Andhra Pradesh">Andhra Pradesh</option></select></div>
+            </div>
+            <div class="form-group-p"><label>CITY / TOWN / DISTRICT</label><input type="text" id="coCity" placeholder="Enter city" required></div>
+            <div class="form-group-p"><label>FULL ADDRESS</label><textarea id="coAddress" placeholder="House No, Street Name, Landmark" required rows="3"></textarea></div>
+          </div>
+          <button type="button" class="btn-checkout-next" onclick="nextStep('Payment')">NEXT</button>
+        </form>
+      </div>
+
+      <div class="checkout-step" id="stepPayment">
+        <p style="font-size:13px;color:#64748B;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;font-weight:600;">UPI APPS</p>
+        <div class="payment-options-list">
+          <div class="payment-option-item active" onclick="selectPayment('phonepe')">
+            <div class="payment-icon" style="background:#5f259f;color:white;"><i class="fas fa-mobile-alt"></i></div>
+            <div class="payment-text"><strong>PhonePe</strong></div>
+            <div class="payment-arrow"><i class="fas fa-check-circle" style="color:#22C55E"></i></div>
+          </div>
+          <div class="payment-option-item" onclick="selectPayment('gpay')">
+            <div class="payment-icon" style="background:#4285F4;color:white;"><i class="fab fa-google"></i></div>
+            <div class="payment-text"><strong>Google Pay</strong></div>
+            <div class="payment-arrow"><i class="far fa-circle"></i></div>
+          </div>
+          <div class="payment-option-item" onclick="selectPayment('paytm')">
+            <div class="payment-icon" style="background:#00B9F1;color:white;"><i class="fas fa-wallet"></i></div>
+            <div class="payment-text"><strong>Paytm</strong></div>
+            <div class="payment-arrow"><i class="far fa-circle"></i></div>
+          </div>
+          <div class="payment-option-item" onclick="selectPayment('supermoney')">
+            <div class="payment-icon" style="background:#6366F1;color:white;"><i class="fas fa-bolt"></i></div>
+            <div class="payment-text"><strong>super.money</strong><small>Get 5% cashback</small></div>
+            <div class="payment-arrow"><i class="far fa-circle"></i></div>
+          </div>
+          <div class="payment-option-item" onclick="selectPayment('credupi')">
+            <div class="payment-icon" style="background:#000;color:white;"><i class="fas fa-shield-alt"></i></div>
+            <div class="payment-text"><strong>CRED UPI</strong></div>
+            <div class="payment-arrow"><i class="far fa-circle"></i></div>
+          </div>
+          <div class="payment-option-item" onclick="selectPayment('bhim')">
+            <div class="payment-icon" style="background:#0D47A1;color:white;"><i class="fas fa-rupee-sign"></i></div>
+            <div class="payment-text"><strong>BHIM</strong></div>
+            <div class="payment-arrow"><i class="far fa-circle"></i></div>
+          </div>
+          <div class="payment-option-item" onclick="selectPayment('other')">
+            <div class="payment-icon" style="background:#64748B;color:white;"><i class="fas fa-ellipsis-h"></i></div>
+            <div class="payment-text"><strong>Other Apps</strong></div>
+            <div class="payment-arrow"><i class="far fa-circle"></i></div>
           </div>
         </div>
-        <div class="co-section"><h3><i class="fas fa-map-marker-alt"></i> Delivery Address</h3>
-          <div class="co-grid">
-            <div class="form-group full-w"><label>Street *</label><input type="text" id="coAddress" required></div>
-            <div class="form-group"><label>City *</label><input type="text" id="coCity" required></div>
-            <div class="form-group"><label>State *</label><input type="text" id="coState" required></div>
-            <div class="form-group"><label>Pincode *</label><input type="text" id="coPincode" required pattern="[0-9]{5,6}"></div>
-            <div class="form-group"><label>Landmark</label><input type="text" id="coLandmark"></div>
-          </div>
-        </div>
-        <div class="co-section"><h3><i class="fas fa-shopping-bag"></i> Order Summary</h3>
+        <button type="button" class="btn-checkout-next" onclick="nextStep('Summary')">PROCEED TO PAY</button>
+      </div>
+      </div>
+
+      <!-- STEP 3: SUMMARY -->
+      <div class="checkout-step" id="stepSummary">
+        <div class="order-preview-card">
           <div id="checkoutOrderItems"></div>
-          <div class="co-totals">
-            <div class="co-row"><span>Subtotal</span><span id="coSubtotal">₹0</span></div>
-            <div class="co-row"><span>Shipping</span><span id="coShipping">FREE</span></div>
-            <div class="co-row co-grand"><span>Total</span><span id="coTotal">₹0</span></div>
+          <div class="co-totals-p">
+             <div class="co-row-p"><span>Subtotal</span><span id="coSubtotal">₹0</span></div>
+             <div class="co-row-p"><span>Shipping</span><span id="coShipping">FREE</span></div>
+             <div class="co-row-p co-grand-p"><span>Total Amount</span><span id="coTotal">₹0</span></div>
           </div>
         </div>
-        <button type="submit" class="btn-place-order" id="placeOrderBtn"><i class="fas fa-lock"></i> PLACE ORDER</button>
-      </form>
+        <div class="payment-method-tag">
+          <i class="fas fa-lock"></i> Secure UPI Payment to 8637489726
+        </div>
+        <button type="button" class="btn-checkout-next" style="background:#000; color:#fff;" onclick="handleCheckoutFinal()">
+          <i class="fas fa-mobile-alt"></i> PAY NOW & PLACE ORDER
+        </button>
+        <p class="final-note">Clicking will open your UPI app (GPay/PhonePe). After payment, WhatsApp will open to confirm your order.</p>
+      </div>
     </div>
   </div>
 

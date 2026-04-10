@@ -1,5 +1,5 @@
 // TN28 Admin Panel Logic — Unified Backend Architecture
-import * as backend from './firebase-config.js';
+import * as backend from './backend-config.js';
 
 let products = [];
 let mediaLibrary = [];
@@ -8,14 +8,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadAndRender();
   initTabs();
   initImageUpload();
-  initMediaUpload();
   document.getElementById('productForm').addEventListener('submit', handleSaveProduct);
   
   // Set up event delegation for product actions
   document.getElementById('productsTable').addEventListener('click', handleTableClick);
   
-  // Load orders data
-  await loadOrders();
+  // Offers
+  loadOffers();
+  const offerForm = document.getElementById('offerForm');
+  if (offerForm) offerForm.addEventListener('submit', handleSaveOffer);
 });
 
 async function handleTableClick(e) {
@@ -39,9 +40,7 @@ async function loadAndRender() {
   mediaLibrary = JSON.parse(localStorage.getItem('tn28_media') || '[]');
   
   // Ensure storefront knows we have initialized the database
-  if (!backend.isFirebaseEnabled) {
-    localStorage.setItem('tn28_initialized', 'true');
-  }
+  localStorage.setItem('tn28_initialized', 'true');
   
   renderDashboard();
   renderProductsTable();
@@ -246,10 +245,10 @@ async function handleSaveProduct(e) {
     reviews: Math.floor(Math.random() * 50) + 10
   };
 
-  // Carry over Firebase ID if editing
+  // Carry over ID if editing
   if (editId) {
-    const existing = products.find(p => p.id === parseInt(editId));
-    if (existing && existing.fbId) product.fbId = existing.fbId;
+    const existing = products.find(p => p.id == editId);
+    if (existing) product.id = existing.id;
   }
 
   showAdminToast('Synchronizing with backend...', 'info');
@@ -551,4 +550,110 @@ window.handleDeleteOrder = async (orderId) => {
   } catch (err) {
     showAdminToast('Delete failed: ' + err.message, 'error');
   }
+};
+
+// =================== OFFERS MANAGEMENT ===================
+let offers = [];
+
+function loadOffers() {
+  offers = JSON.parse(localStorage.getItem('tn28_offers') || '[]');
+  renderOffersList();
+}
+
+function saveOffers() {
+  localStorage.setItem('tn28_offers', JSON.stringify(offers));
+}
+
+function renderOffersList() {
+  const container = document.getElementById('offersListContainer');
+  if (!container) return;
+
+  if (offers.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:48px 0;color:#94A3B8;">
+        <i class="fas fa-percent" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3"></i>
+        <h4 style="margin-bottom:8px;color:#64748B;">No offers yet</h4>
+        <p>Create your first promotional offer to attract customers!</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = offers.map(offer => `
+    <div style="display:flex;align-items:center;gap:16px;padding:20px;background:#F8FAFC;border-radius:12px;margin-bottom:12px;border:1px solid #E2E8F0;">
+      ${offer.image ? `<img src="${offer.image}" style="width:80px;height:56px;object-fit:cover;border-radius:8px;" alt="">` : `<div style="width:80px;height:56px;background:linear-gradient(135deg,#0F172A,#1E293B);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#C8A96E;font-size:24px;"><i class="fas fa-percent"></i></div>`}
+      <div style="flex:1;">
+        <h4 style="font-size:15px;font-weight:600;margin-bottom:4px;">${offer.title}</h4>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+          <span style="background:#22C55E;color:white;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:700;">${offer.discount}% OFF</span>
+          ${offer.code ? `<span style="background:#EEF2FF;color:#4F46E5;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600;">Code: ${offer.code}</span>` : ''}
+          ${offer.expiry ? `<span style="font-size:12px;color:#94A3B8;"><i class="fas fa-calendar"></i> Until ${offer.expiry}</span>` : ''}
+          <span style="font-size:12px;color:${offer.active ? '#22C55E' : '#EF4444'};font-weight:600;"><i class="fas fa-circle" style="font-size:8px;"></i> ${offer.active ? 'Active' : 'Inactive'}</span>
+        </div>
+        ${offer.description ? `<p style="font-size:13px;color:#64748B;margin-top:4px;">${offer.description}</p>` : ''}
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-admin" onclick="editOffer('${offer.id}')" style="font-size:13px;"><i class="fas fa-edit"></i></button>
+        <button class="btn-admin" onclick="deleteOffer('${offer.id}')" style="font-size:13px;color:#EF4444;"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function handleSaveOffer(e) {
+  e.preventDefault();
+  const editId = document.getElementById('editOfferId').value;
+  const offerData = {
+    id: editId || Date.now().toString(),
+    title: document.getElementById('offerTitle').value,
+    discount: parseInt(document.getElementById('offerDiscount').value),
+    code: document.getElementById('offerCode').value || '',
+    expiry: document.getElementById('offerExpiry').value || '',
+    description: document.getElementById('offerDescription').value || '',
+    image: document.getElementById('offerImage').value || '',
+    active: document.getElementById('offerActive').checked,
+    createdAt: editId ? (offers.find(o => o.id === editId)?.createdAt || new Date().toISOString()) : new Date().toISOString()
+  };
+
+  if (editId) {
+    const idx = offers.findIndex(o => o.id === editId);
+    if (idx !== -1) offers[idx] = offerData;
+  } else {
+    offers.push(offerData);
+  }
+
+  saveOffers();
+  renderOffersList();
+  resetOfferForm();
+  showAdminToast(editId ? 'Offer updated!' : 'Offer created!', 'success');
+}
+
+window.resetOfferForm = function() {
+  document.getElementById('offerForm').reset();
+  document.getElementById('editOfferId').value = '';
+  document.getElementById('offerFormCard').style.display = 'none';
+  document.getElementById('offerFormTitle').textContent = 'Create New Offer';
+  document.getElementById('offerActive').checked = true;
+};
+
+window.editOffer = function(id) {
+  const offer = offers.find(o => o.id === id);
+  if (!offer) return;
+  document.getElementById('editOfferId').value = offer.id;
+  document.getElementById('offerTitle').value = offer.title;
+  document.getElementById('offerDiscount').value = offer.discount;
+  document.getElementById('offerCode').value = offer.code || '';
+  document.getElementById('offerExpiry').value = offer.expiry || '';
+  document.getElementById('offerDescription').value = offer.description || '';
+  document.getElementById('offerImage').value = offer.image || '';
+  document.getElementById('offerActive').checked = offer.active;
+  document.getElementById('offerFormCard').style.display = 'block';
+  document.getElementById('offerFormTitle').textContent = 'Edit Offer';
+};
+
+window.deleteOffer = function(id) {
+  if (!confirm('Delete this offer?')) return;
+  offers = offers.filter(o => o.id !== id);
+  saveOffers();
+  renderOffersList();
+  showAdminToast('Offer deleted', 'success');
 };
