@@ -28,6 +28,10 @@
   --shadow-xl: 0 20px 60px rgba(0,0,0,0.12);
   --font: 'Outfit', 'Inter', -apple-system, sans-serif;
   --font-display: 'Playfair Display', Georgia, serif;
+  --amazon-yellow: #FFD814;
+  --amazon-yellow-hover: #F7CA00;
+  --amazon-orange: #FFA41C;
+  --amazon-blue: #007185;
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --transition: all 0.4s var(--ease);
 }
@@ -697,8 +701,95 @@ input { font-family: inherit; }
 .modal-close-btn-p:hover { background: var(--red); color: var(--white); }
 
 .checkout-content-p { padding: 24px; }
+/* Amazon Progress Bar */
+.checkout-progress {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 40px 24px;
+  position: relative;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+.checkout-progress::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 50px;
+  right: 50px;
+  height: 2px;
+  background: var(--border);
+  z-index: 1;
+}
+.progress-step {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  flex: 1;
+}
+.step-dot {
+  width: 22px;
+  height: 22px;
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  margin: 0 auto 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-light);
+  transition: var(--transition);
+}
+.progress-step.active .step-dot {
+  border-color: var(--amazon-orange);
+  background: var(--amazon-orange);
+  color: var(--white);
+}
+.progress-step.completed .step-dot {
+  border-color: var(--green);
+  background: var(--green);
+  color: var(--white);
+}
+.step-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.progress-step.active .step-label {
+  color: var(--navy);
+}
+
 .checkout-step { display: none; animation: fadeIn 0.4s var(--ease); }
 .checkout-step.active { display: block; }
+
+/* Amazon Style Items */
+.amazon-item-row {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-bottom: 1px solid var(--bg);
+}
+.amazon-item-img {
+  width: 60px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+.amazon-item-info {
+  flex: 1;
+}
+.amazon-item-name {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.amazon-item-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
 
 .form-group-p { margin-bottom: 20px; }
 .form-group-p label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 8px; }

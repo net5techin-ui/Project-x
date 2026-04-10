@@ -302,31 +302,24 @@
     </div>
 
     <div class="checkout-content-p">
-      <!-- STEP 1: PAYMENT -->
-      <div class="checkout-step active" id="stepPayment">
-        <p style="font-size:13px;color:#64748B;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;font-weight:600;">SELECT UPI APP</p>
-        <div class="payment-options-list">
-          <div class="payment-option-item active" onclick="selectPayment('phonepe')">
-            <div class="payment-icon" style="background:#5f259f;color:white;"><i class="fas fa-mobile-alt"></i></div>
-            <div class="payment-text"><strong>PhonePe</strong></div>
-            <div class="payment-arrow"><i class="fas fa-check-circle" style="color:#22C55E"></i></div>
-          </div>
-          <div class="payment-option-item" onclick="selectPayment('gpay')">
-            <div class="payment-icon" style="background:#4285F4;color:white;"><i class="fab fa-google"></i></div>
-            <div class="payment-text"><strong>Google Pay</strong></div>
-            <div class="payment-arrow"><i class="far fa-circle"></i></div>
-          </div>
-          <div class="payment-option-item" onclick="selectPayment('paytm')">
-            <div class="payment-icon" style="background:#00B9F1;color:white;"><i class="fas fa-wallet"></i></div>
-            <div class="payment-text"><strong>Paytm</strong></div>
-            <div class="payment-arrow"><i class="far fa-circle"></i></div>
-          </div>
+      <!-- Amazon Progress Tracker -->
+      <div class="checkout-progress">
+        <div class="progress-step active" id="progAddress">
+          <div class="step-dot">1</div>
+          <div class="step-label">Address</div>
         </div>
-        <button type="button" class="btn-checkout-next" onclick="nextStep('Address')">PROCEED TO ADDRESS</button>
+        <div class="progress-step" id="progPayment">
+          <div class="step-dot">2</div>
+          <div class="step-label">Payment</div>
+        </div>
+        <div class="progress-step" id="progSummary">
+          <div class="step-dot">3</div>
+          <div class="step-label">Review</div>
+        </div>
       </div>
 
-      <!-- STEP 2: ADDRESS -->
-      <div class="checkout-step" id="stepAddress">
+      <!-- STEP 1: ADDRESS -->
+      <div class="checkout-step active" id="stepAddress">
         <form id="addressForm">
           <div class="co-section">
             <div class="form-group-p"><label>RECIPIENT'S NAME</label><input type="text" id="coFullName" placeholder="Enter recipient name" required></div>
@@ -338,25 +331,67 @@
             <div class="form-group-p"><label>CITY / TOWN / DISTRICT</label><input type="text" id="coCity" placeholder="Enter city" required></div>
             <div class="form-group-p"><label>FULL ADDRESS</label><textarea id="coAddress" placeholder="House No, Street Name, Landmark" required rows="3"></textarea></div>
           </div>
-          <button type="button" class="btn-checkout-next" onclick="nextStep('Summary')">NEXT</button>
+          <button type="button" class="btn-checkout-next" style="background: var(--amazon-yellow); border: 1px solid #FCD200; color: #111;" onclick="nextStep('Payment')">Use this address</button>
         </form>
+      </div>
+
+      <!-- STEP 2: PAYMENT -->
+      <div class="checkout-step" id="stepPayment">
+        <p style="font-size:13px;color:#111;font-weight:700;margin-bottom:12px;">Select a payment method</p>
+        <div class="payment-options-list">
+          <div class="payment-option-item active" onclick="selectPayment('phonepe')">
+            <div class="payment-icon" style="background:#5f259f;color:white;"><i class="fas fa-mobile-alt"></i></div>
+            <div class="payment-text"><strong>PhonePe / UPI App</strong><small>Instantly pay with any UPI app</small></div>
+            <div class="payment-arrow"><i class="fas fa-check-circle" style="color:var(--amazon-orange)"></i></div>
+          </div>
+          <div class="payment-option-item" onclick="selectPayment('gpay')">
+            <div class="payment-icon" style="background:#4285F4;color:white;"><i class="fab fa-google"></i></div>
+            <div class="payment-text"><strong>Google Pay</strong><small>Fast and secure checkout</small></div>
+            <div class="payment-arrow"><i class="far fa-circle"></i></div>
+          </div>
+          <div class="payment-option-item" onclick="selectPayment('paytm')">
+            <div class="payment-icon" style="background:#00B9F1;color:white;"><i class="fas fa-wallet"></i></div>
+            <div class="payment-text"><strong>Paytm</strong><small>Pay via Paytm account</small></div>
+            <div class="payment-arrow"><i class="far fa-circle"></i></div>
+          </div>
+          <div class="payment-option-item" onclick="selectPayment('qr_scan')">
+            <div class="payment-icon" style="background:#000;color:white;"><i class="fas fa-qrcode"></i></div>
+            <div class="payment-text"><strong>Scan & Pay (QR)</strong><small>Scan code with any UPI app</small></div>
+            <div class="payment-arrow"><i class="far fa-circle"></i></div>
+          </div>
+        </div>
+
+        <!-- QR Code Display (Hidden by default) -->
+        <div id="qrCodeDisplay" style="display:none; text-align:center; padding:12px; background:#fff; border:1px solid var(--border); border-radius:12px; margin-bottom:16px;">
+          <p style="font-size:12px; font-weight:700; margin-bottom:8px;">Scan this QR with PhonePe/GPay/Paytm</p>
+          <img id="qrImageElement" src="assets/phonepe-qr.png" style="width:180px; height:auto; margin:0 auto; display:block;">
+          <p style="font-size:11px; margin-top:8px; color:var(--text-muted);">Sakthivel: 9600447624</p>
+        </div>
+        <button type="button" class="btn-checkout-next" style="background: var(--amazon-yellow); border: 1px solid #FCD200; color: #111;" onclick="nextStep('Summary')">Continue</button>
       </div>
 
       <!-- STEP 3: SUMMARY -->
       <div class="checkout-step" id="stepSummary">
-        <div class="order-preview-card">
+        <div class="order-preview-card" style="background: #fff; border: 1px solid var(--border);">
+          <div style="font-size: 14px; font-weight: 700; margin-bottom: 12px; padding: 0 0 8px; border-bottom: 1px solid var(--bg);">Review your order</div>
           <div id="checkoutOrderItems"></div>
           <div class="co-totals-p">
-             <div class="co-row-p"><span>Subtotal</span><span id="coSubtotal">₹0</span></div>
-             <div class="co-row-p"><span>Shipping (10%)</span><span id="coShipping">₹0</span></div>
-             <div class="co-row-p co-grand-p"><span>Total Amount</span><span id="coTotal">₹0</span></div>
+             <div class="co-row-p"><span>Items:</span><span id="coSubtotal">₹0</span></div>
+             <div class="co-row-p"><span>Shipping & handling:</span><span id="coShipping">₹0</span></div>
+             <div class="co-row-p" style="padding-top: 10px; border-top: 1px solid var(--bg); font-size: 16px; font-weight: 700; color: #B12704;">
+               <span>Order Total:</span><span id="coTotal">₹0</span>
+             </div>
           </div>
         </div>
-        <div class="payment-method-tag">
-          <i class="fas fa-check-circle"></i> Paying via UPI to 9600447624
+        
+        <div style="background: #F0F2F2; border-radius: 8px; padding: 16px; margin-bottom: 20px; border: 1px solid var(--border);">
+          <p style="font-size: 12px; line-height: 1.5; color: #565959;">By placing your order, you agree to TN28's <a href="#" style="color: var(--amazon-blue)">privacy notice</a> and <a href="#" style="color: var(--amazon-blue)">conditions of use</a>.</p>
         </div>
-        <button type="button" class="btn-checkout-next" style="background:#25D366" onclick="handleCheckoutFinal()"><i class="fab fa-whatsapp"></i> PLACE ORDER VIA WHATSAPP</button>
-        <p class="final-note">After clicking, share your order details on WhatsApp to complete the payment.</p>
+
+        <button type="button" class="btn-checkout-next" style="background: var(--amazon-orange); border: 1px solid #F08804; color: #fff;" onclick="handleCheckoutFinal()">
+          Place your order and pay
+        </button>
+        <p class="final-note">Order details will be sent to sngagan54@gmail.com and WhatsApp.</p>
       </div>
     </div>
   </div>
@@ -366,10 +401,9 @@
   <div class="modal success-modal" id="orderSuccessModal">
     <div class="success-content">
       <div class="success-icon"><i class="fas fa-check-circle"></i></div>
-      <h2>Order Placed!</h2>
-      <p>Order ID: <strong id="successOrderId"></strong></p>
-      <div id="successDetails"></div>
-      <button class="btn-dark" onclick="closeModal('orderSuccess'); location.reload();">CONTINUE SHOPPING</button>
+      <h2>Order Successful!</h2>
+      <div id="successDetails" style="margin-bottom:24px;"></div>
+      <button class="btn-dark" style="width:100%" onclick="closeModal('orderSuccess'); location.reload();">CONTINUE SHOPPING</button>
     </div>
   </div>
 

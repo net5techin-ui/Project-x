@@ -367,7 +367,6 @@ async function handleCheckout(e) {
   try {
     const result = await backend.placeOrder(payload);
     closeModal('checkout');
-    document.getElementById('successOrderId').textContent = result.orderId || 'N/A';
     document.getElementById('successDetails').innerHTML = `<p style="margin:12px 0">Total: ₹${payload.grandTotal.toLocaleString()}</p><p style="font-size:14px;color:#64748B">You'll receive a confirmation email shortly.</p>`;
     openModal('orderSuccess');
     cart = []; saveCart();
@@ -385,6 +384,9 @@ function openCheckoutModal() {
   document.getElementById('coSubtotal').textContent = `₹${total.toLocaleString()}`;
   document.getElementById('coShipping').textContent = `₹${ship.toLocaleString()}`;
   document.getElementById('coTotal').textContent = `₹${(total + ship).toLocaleString()}`;
+  
+  // Start from Address step (Amazon style)
+  nextStep('Address');
   openModal('checkout');
 }
 
@@ -412,11 +414,15 @@ window.filterByCategory = (c) => renderFeatured(c, 'category');
 
 // ─── MULTI-STEP CHECKOUT LOGIC ───
 window.nextStep = (step) => {
+  // Update Progress Tracker
+  document.querySelectorAll('.progress-step').forEach(s => s.classList.remove('active', 'completed'));
+  
   if (step === 'Address') {
-    document.getElementById('checkoutMainTitle').textContent = 'Add Delivery Address';
-    document.getElementById('checkoutBackBtn').style.display = 'flex';
-  } else if (step === 'Summary') {
-    // Validate Address fields before moving to Summary
+    document.getElementById('progAddress').classList.add('active');
+    document.getElementById('checkoutMainTitle').textContent = '1. Select a delivery address';
+    document.getElementById('checkoutBackBtn').style.display = 'none';
+  } else if (step === 'Payment') {
+    // Validate Address fields before moving to Payment
     const name = document.getElementById('coFullName').value;
     const phone = document.getElementById('coPhone').value;
     const address = document.getElementById('coAddress').value;
@@ -425,13 +431,21 @@ window.nextStep = (step) => {
     
     if (!name || !phone || !address || !city || !pincode) {
       showToast('Please fill all required delivery fields', 'error');
+      // Revert progress
+      document.getElementById('progAddress').classList.add('active');
       return;
     }
-    
-    document.getElementById('checkoutMainTitle').textContent = 'Order Summary';
-  } else if (step === 'Payment') {
-    document.getElementById('checkoutMainTitle').textContent = 'Select Payment Method';
-    document.getElementById('checkoutBackBtn').style.display = 'none';
+
+    document.getElementById('progAddress').classList.add('completed');
+    document.getElementById('progPayment').classList.add('active');
+    document.getElementById('checkoutMainTitle').textContent = '2. Select a payment method';
+    document.getElementById('checkoutBackBtn').style.display = 'flex';
+  } else if (step === 'Summary') {
+    document.getElementById('progAddress').classList.add('completed');
+    document.getElementById('progPayment').classList.add('completed');
+    document.getElementById('progSummary').classList.add('active');
+    document.getElementById('checkoutMainTitle').textContent = '3. Review your order';
+    document.getElementById('checkoutBackBtn').style.display = 'flex';
   }
 
   // Toggle steps
@@ -452,11 +466,13 @@ window.selectPayment = (method) => {
   const selected = document.querySelector(`.payment-option-item[onclick="selectPayment('${method}')"]`);
   if (selected) {
     selected.classList.add('active');
-    const arrow = selected.querySelector('.payment-arrow i');
-    if (arrow) {
-      arrow.className = 'fas fa-check-circle';
-      arrow.style.color = '#22C55E';
     }
+  }
+
+  // Handle QR Scan visibility
+  const qrDisplay = document.getElementById('qrCodeDisplay');
+  if (qrDisplay) {
+    qrDisplay.style.display = method === 'qr_scan' ? 'block' : 'none';
   }
 };
 
@@ -554,10 +570,10 @@ document.getElementById('checkoutBackBtn')?.addEventListener('click', () => {
   const paymentStep = document.getElementById('stepPayment');
   const summaryStep = document.getElementById('stepSummary');
 
-  if (addressStep.classList.contains('active')) {
-    nextStep('Payment');
-  } else if (summaryStep.classList.contains('active')) {
+  if (paymentStep.classList.contains('active')) {
     nextStep('Address');
+  } else if (summaryStep.classList.contains('active')) {
+    nextStep('Payment');
   }
 });
 
