@@ -1,0 +1,53 @@
+{
+  "products": [
+    {
+      "name": "Classic White Shirt",
+      "brand": "TN28 Premium",
+      "category": "Formal",
+      "price": 1299,
+      "original_price": 2499,
+      "stock": 50,
+      "fabric": "Pima Cotton",
+      "image": "https://images.unsplash.com/photo-1598033129183-c4f50c717658?q=80&w=1480&auto=format&fit=crop",
+      "sizes": ["S", "M", "L", "XL"],
+      "colors": ["White"],
+      "description": "Premium 100% Pima cotton shirt with spread collar.",
+      "is_new": true,
+      "rating": 4.8,
+      "reviews": 124
+    },
+    {
+      "name": "Navy Blue Chinos",
+      "brand": "TN28 Casual",
+      "category": "Casual",
+      "price": 1599,
+      "original_price": 2999,
+      "stock": 35,
+      "fabric": "Cotton Chino",
+      "image": "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?q=80&w=1587&auto=format&fit=crop",
+      "sizes": ["30", "32", "34", "36"],
+      "colors": ["Navy"],
+      "description": "Slim-fit trousers made from high-stretch chino cotton.",
+      "is_new": true,
+      "rating": 4.7,
+      "reviews": 89
+    },
+    {
+      "name": "Dark Indigo Denim",
+      "brand": "TN28 Denim",
+      "category": "Casual",
+      "price": 2299,
+      "original_price": 4499,
+      "stock": 20,
+      "fabric": "Stretch Denim",
+      "image": "https://images.unsplash.com/photo-1542272604-787c3835535d?q=80&w=1452&auto=format&fit=crop",
+      "sizes": ["30", "32", "34"],
+      "colors": ["Indigo"],
+      "description": "Hand-faded dark indigo denim with raw edge detailing.",
+      "is_sale": true,
+      "is_hot": true,
+      "rating": 4.9,
+      "reviews": 210
+    }
+  ]
+}

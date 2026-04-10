@@ -1,0 +1,4 @@
+--- SCHEMA CHECK ---
+Table [products] OK. Columns: id, title, price, description, category, image, stock
+Table [orders] ERROR: Could not find the table 'public.orders' in the schema cache (Code: PGRST205)
+Table [profiles] ERROR: Could not find the table 'public.profiles' in the schema cache (Code: PGRST205)

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TN28 | Access Your World</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary: #9aa17a;
+      --primary-dark: #7a7f60;
+      --bg: #f8f9fa;
+      --glass: rgba(255, 255, 255, 0.85);
+      --text: #1a1a1a;
+      --text-muted: #64748B;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+    
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      background-image: url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop');
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 450px;
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      padding: 50px 40px;
+      border-radius: 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      position: relative;
+      z-index: 1;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .logo-text {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--text);
+    }
+
+    .logo-sub {
+      display: block;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      margin-top: 5px;
+      color: var(--primary-dark);
+    }
+
+    .auth-tabs {
+      display: flex;
+      margin-bottom: 30px;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.05);
+      padding: 5px;
+      border-radius: 12px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: none;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+
+    .tab-btn.active {
+      background: white;
+      color: var(--text);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid #E2E8F0;
+      font-size: 15px;
+      transition: all 0.3s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(154, 161, 122, 0.1);
+    }
+
+    .social-btns {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .btn-social {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #E2E8F0;
+      background: white;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .btn-social:hover {
+      background: #f8f9fa;
+      transform: translateY(-2px);
+    }
+
+    .divider {
+      text-align: center;
+      margin: 25px 0;
+      position: relative;
+    }
+
+    .divider::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 0; width: 40%; height: 1px; background: #E2E8F0;
+    }
+
+    .divider::after {
+      content: '';
+      position: absolute;
+      top: 50%; right: 0; width: 40%; height: 1px; background: #E2E8F0;
+    }
+
+    .divider span {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: var(--glass);
+      padding: 0 10px;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(154, 161, 122, 0.2);
+    }
+
+    .footer-links {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .footer-links a {
+      color: var(--primary-dark);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 24px;
+      border-radius: 10px;
+      color: white;
+      font-size: 14px;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="logo">
+      <div class="logo-text">TN28</div>
+      <div class="logo-sub">Premiere Fashion</div>
+    </div>
+
+    <div class="auth-tabs" id="authTabs">
+      <button class="tab-btn active" data-mode="login">LOG IN</button>
+      <button class="tab-btn" data-mode="signup">SIGN UP</button>
+    </div>
+
+    <div class="social-btns">
+      <button class="btn-social" id="btnGoogle">
+        <img src="https://www.google.com/favicon.ico" width="20" alt="Google">
+        Google
+      </button>
+    </div>
+
+    <div class="divider">
+      <span>OR WITH EMAIL</span>
+    </div>
+
+    <form id="authForm">
+      <div class="form-group" id="nameGroup" style="display:none">
+        <label>FULL NAME</label>
+        <input type="text" id="fullName" placeholder="e.g. John Doe">
+      </div>
+      <div class="form-group">
+        <label>EMAIL ADDRESS</label>
+        <input type="email" id="email" required placeholder="name@email.com">
+      </div>
+      <div class="form-group">
+        <label>PASSWORD</label>
+        <input type="password" id="password" required placeholder="••••••••">
+      </div>
+      <button type="submit" class="btn-submit" id="submitBtn">LOG IN</button>
+    </form>
+
+    <div class="footer-links">
+      <a href="index.html"><i class="fas fa-arrow-left"></i> BACK TO STORE</a>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script type="module" src="login.js"></script>
+</body>
+</html>

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TN28 Apparels | Premium Men's Fashion Store</title>
+  <meta name="description" content="TN28 Apparels - Premium men's fashion. Shop formal shirts, casual wear, luxury suits, and accessories.">
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+
+  <!-- ============ HEADER ============ -->
+  <header class="header" id="header">
+    <div class="header-container">
+      <!-- Left: Menu + Location -->
+      <div class="header-left">
+        <button class="header-icon-btn" id="mobileMenuBtn" aria-label="Menu">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="location-pill" id="locationPill">
+          <i class="fas fa-map-marker-alt"></i>
+          <span id="userLocation">Detecting...</span>
+        </div>
+      </div>
+
+      <!-- Center: Logo -->
+      <div class="header-center">
+        <a href="/" class="logo-link">
+          <img src="./assets/images/logo.jpg" alt="TN28 Apparels" class="main-logo" id="mainLogo">
+        </a>
+      </div>
+
+      <!-- Right: Actions -->
+      <div class="header-right">
+        <button class="header-icon-btn" id="searchBtn" aria-label="Search">
+          <i class="fas fa-search"></i>
+        </button>
+
+        <button class="header-icon-btn has-badge" id="wishlistBtn" aria-label="Wishlist">
+          <i class="fas fa-heart"></i>
+          <span class="icon-badge" id="wishlistBadge">0</span>
+        </button>
+        <button class="header-icon-btn has-badge" id="cartBtn" aria-label="Cart">
+          <i class="fas fa-shopping-bag"></i>
+          <span class="icon-badge" id="cartBadge">0</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="main-nav" id="mainNav">
+      <ul class="nav-list">
+        <li><a href="index.html" class="nav-link" data-section="home">Home</a></li>
+        <li><a href="index.html#new-arrivals" class="nav-link" data-section="new-arrivals">New In</a></li>
+        <li><a href="offers.html" class="nav-link active">Offers</a></li>
+        <li class="nav-dropdown-wrap">
+          <a href="index.html#brands" class="nav-link">Brands <i class="fas fa-chevron-down"></i></a>
+          <div class="mega-dropdown">
+            <a href="index.html#featured" onclick="filterByBrand('Urban Design')">Urban Design</a>
+            <a href="index.html#featured" onclick="filterByBrand('Some')">Some</a>
+            <a href="index.html#featured" onclick="filterByBrand('U-casuals')">U-casuals</a>
+            <a href="index.html#featured" onclick="filterByBrand('Jungle-jeans')">Jungle-jeans</a>
+            <a href="index.html#featured" onclick="filterByBrand('WallPlus')">WallPlus</a>
+            <a href="index.html#featured" onclick="filterByBrand('Haestor')">Haestor</a>
+          </div>
+        </li>
+        <li class="nav-dropdown-wrap">
+          <a href="index.html#styles" class="nav-link">Styles <i class="fas fa-chevron-down"></i></a>
+          <div class="mega-dropdown">
+            <a href="index.html#featured" onclick="filterByCategory('formal')">Formal Wear</a>
+            <a href="index.html#featured" onclick="filterByCategory('casual')">Casual Wear</a>
+            <a href="index.html#featured" onclick="filterByCategory('party')">Party Wear</a>
+
+            <a href="index.html#featured" onclick="filterByCategory('sports')">Sports Wear</a>
+          </div>
+        </li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- ============ MOBILE MENU ============ -->
+  <div class="mobile-overlay" id="mobileMenuOverlay"></div>
+  <div class="mobile-menu" id="mobileMenu">
+    <div class="mobile-menu-head">
+      <img src="./assets/images/logo.jpg" alt="TN28 Apparels" class="mobile-logo">
+      <button class="header-icon-btn" id="closeMobileMenu"><i class="fas fa-times"></i></button>
+    </div>
+    <ul class="mobile-nav-links">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#new-arrivals">New Arrivals</a></li>
+      <li><a href="#brands">Brands</a></li>
+      <li><a href="#styles">Shop by Style</a></li>
+      <li><a href="#featured">Collection</a></li>
+    </ul>
+    <div class="mobile-menu-foot">
+      <a href="#" id="mobileAuthBtn" style="display:none;"><i class="fas fa-user"></i> Sign In / Register</a>
+      <a href="admin.html"><i class="fas fa-cog"></i> Admin Panel</a>
+    </div>
+  </div>
+
+  <div style="padding-top: 100px;"></div>
+
+
+
+
+  <!-- ============ DYNAMIC OFFER CONTAINER ============ -->
+  <div id="dynamicOfferContainer"></div>
+
+  <!-- ============ OFFER PRODUCTS ============ -->
+  <section class="section" id="offersGridContainer">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="section-tag">MEGA DISCOUNTS</span>
+        <h2 class="section-title">All Exclusive Offers</h2>
+        <p class="section-sub">Premium styles at unbeatable prices</p>
+      </div>
+      <div class="filter-bar" id="filterBar">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="formal">Formal</button>
+        <button class="filter-btn" data-filter="casual">Casual</button>
+
+        <button class="filter-btn" data-filter="party">Party</button>
+      </div>
+      <div class="products-grid" id="offersPageGrid"></div>
+      <div class="section-cta"><a href="index.html#featured" class="btn-dark">VIEW ALL REGULAR PRODUCTS</a></div>
+    </div>
+  </section>
+
+
+  <!-- ============ NEWSLETTER ============ -->
+  <section class="newsletter-section">
+    <div class="container">
+      <div class="newsletter-card reveal">
+        <div class="newsletter-icon"><i class="fas fa-envelope-open-text"></i></div>
+        <h2>Join the TN28 Club</h2>
+        <p>Subscribe to get exclusive offers, style tips, and early access to new collections.</p>
+        <form class="newsletter-form" id="newsletterForm">
+          <div class="newsletter-input-wrap">
+            <input type="email" placeholder="Enter your email address" required id="newsletterEmail">
+            <button type="submit" class="btn-subscribe"><i class="fas fa-paper-plane"></i></button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ INSTAGRAM ============ -->
+  <section class="section insta-section">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="section-tag">@TN28FASHION</span>
+        <h2 class="section-title">Follow Our Style</h2>
+      </div>
+      <div class="insta-grid">
+        <div class="insta-item reveal" style="background-image:url('https://images.unsplash.com/photo-1617137968427-85924c800a22?w=400&q=80')"><div class="insta-hover"><i class="fab fa-instagram"></i></div></div>
+        <div class="insta-item reveal" style="background-image:url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80')"><div class="insta-hover"><i class="fab fa-instagram"></i></div></div>
+        <div class="insta-item reveal" style="background-image:url('https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&q=80')"><div class="insta-hover"><i class="fab fa-instagram"></i></div></div>
+        <div class="insta-item reveal" style="background-image:url('https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?w=400&q=80')"><div class="insta-hover"><i class="fab fa-instagram"></i></div></div>
+        <div class="insta-item reveal" style="background-image:url('https://images.unsplash.com/photo-1600091166971-7f9faad6c1e2?w=400&q=80')"><div class="insta-hover"><i class="fab fa-instagram"></i></div></div>
+        <div class="insta-item reveal" style="background-image:url('https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?w=400&q=80')"><div class="insta-hover"><i class="fab fa-instagram"></i></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="footer-top">
+      <div class="container">
+        <div class="footer-grid">
+          <!-- Brand Column -->
+          <div class="footer-brand-col">
+            <img src="./assets/images/logo.jpg" alt="TN28 Apparels" class="footer-logo-img">
+            <p class="footer-tagline">Premium menswear curated for the modern gentleman. Redefine your style statement with TN28 Apparels.</p>
+            <div class="footer-socials">
+              <a href="https://www.instagram.com/tn28.mensfashionstore?igsh=dHdvMnl1cmR4cjll" target="_blank" class="footer-social-link" title="Instagram">
+                <i class="fab fa-instagram"></i>
+              </a>
+              <a href="https://www.facebook.com/share/16tDmJK7hB/" target="_blank" class="footer-social-link" title="Facebook">
+                <i class="fab fa-facebook-f"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Quick Links Column -->
+          <div class="footer-links-col">
+            <h4 class="footer-col-title">Our Business</h4>
+            <div class="footer-links">
+              <a href="index.html">Home</a>
+              <a href="index.html#new-arrivals">New Arrivals</a>
+              <a href="offers.html">Latest Offers</a>
+              <a href="index.html#styles">Shop by Style</a>
+              <a href="index.html#brands">Our Brands</a>
+            </div>
+          </div>
+
+          <!-- Contact Column -->
+          <div class="footer-contact-col">
+            <h4 class="footer-col-title">Get In Touch</h4>
+            
+            <div class="footer-contact-item">
+              <i class="fas fa-map-marker-alt"></i>
+              <div class="footer-contact-info">
+                <span class="footer-contact-label">Address</span>
+                <span class="footer-contact-text">26A, Theradi Street, Rasipuram,<br>Namakkal - 637 408</span>
+              </div>
+            </div>
+
+            <div class="footer-contact-item">
+              <i class="fas fa-phone-alt"></i>
+              <div class="footer-contact-info">
+                <span class="footer-contact-label">Phone</span>
+                <a href="tel:+919500267828" class="footer-contact-text">+91 95002 67828</a>
+              </div>
+            </div>
+
+            <div class="footer-contact-item">
+              <i class="fas fa-envelope"></i>
+              <div class="footer-contact-info">
+                <span class="footer-contact-label">Email</span>
+                <a href="mailto:tn28fashions@gmail.com" class="footer-contact-text">tn28fashions@gmail.com</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container">
+        <p class="copyright">&copy; 2024 TN28 Apparels. All rights reserved.</p>
+        <p class="copyright">Designed for Premium Fashion</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============ CART SIDEBAR ============ -->
+  <div class="cart-overlay" id="cartOverlay"></div>
+  <div class="cart-sidebar" id="cartSidebar">
+    <div class="cart-header"><h3><i class="fas fa-shopping-bag"></i> Your Cart</h3><button class="header-icon-btn" id="closeCart"><i class="fas fa-times"></i></button></div>
+    <div class="cart-items" id="cartItems">
+      <div class="cart-empty" id="cartEmpty"><i class="fas fa-shopping-bag"></i><p>Your cart is empty</p><a href="#featured" class="btn-dark">Continue Shopping</a></div>
+    </div>
+    <div class="cart-footer" id="cartFooter" style="display:none;">
+      <div class="cart-total"><span>Subtotal</span><span id="cartTotal">₹0</span></div>
+      <p class="cart-note">Shipping & taxes calculated at checkout</p>
+      <button class="btn-checkout" id="checkoutBtn">CHECKOUT</button>
+      <a href="#featured" class="btn-continue">CONTINUE SHOPPING</a>
+    </div>
+  </div>
+
+  <!-- ============ QUICK VIEW / PRODUCT DETAIL (Amazon/Flipkart Style) ============ -->
+  <div class="modal-overlay" id="quickViewOverlay"></div>
+  <div class="modal quick-view-modal" id="quickViewModal">
+    <button class="modal-close-btn" id="closeQuickView"><i class="fas fa-times"></i></button>
+    <div class="qv-content">
+      <div class="qv-image"><img src="" alt="" id="qvImage"></div>
+      <div class="qv-details">
+        <span class="qv-brand" id="qvBrand"></span>
+        <h2 class="qv-name" id="qvName"></h2>
+        <div class="qv-rating-row"><span class="qv-stars" id="qvStars"></span><span class="qv-reviews" id="qvReviews"></span></div>
+        <hr style="border:none;border-top:1px solid #E2E8F0;margin:8px 0">
+        <div class="qv-price-row">
+          <span class="qv-price" id="qvPrice"></span>
+          <span class="qv-original" id="qvOriginal"></span>
+          <span class="qv-discount-tag" id="qvDiscountTag"></span>
+        </div>
+        <p style="font-size:12px;color:#22C55E;font-weight:600;margin-top:4px"><i class="fas fa-check-circle"></i> In Stock</p>
+        <p class="qv-desc" id="qvDescription"></p>
+        <div class="qv-sizes"><span class="qv-label">Size:</span><div class="size-options" id="qvSizes"></div></div>
+        <div class="qv-qty"><span class="qv-label">Qty:</span><div class="qty-selector"><button class="qty-btn" id="qvQtyMinus">−</button><input type="number" value="1" min="1" max="10" id="qvQty"><button class="qty-btn" id="qvQtyPlus">+</button></div></div>
+        <div class="qv-delivery"><i class="fas fa-truck"></i> Free delivery by <strong id="qvDeliveryDate"></strong></div>
+        <div class="qv-actions">
+          <button class="btn-add-cart" id="qvAddToCart"><i class="fas fa-shopping-cart"></i> ADD TO CART</button>
+          <button class="btn-buy-now" id="qvBuyNow"><i class="fas fa-bolt"></i> BUY NOW</button>
+        </div>
+        <div class="qv-trust">
+          <span><i class="fas fa-shield-alt"></i> Genuine Product</span>
+          <span><i class="fas fa-undo"></i> 30 Day Returns</span>
+          <span><i class="fas fa-truck"></i> Free Shipping</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTHENTICATION REMOVED -->
+
+  <!-- ============ CHECKOUT MODAL ============ -->
+  <div class="modal-overlay" id="checkoutOverlay"></div>
+  <div class="modal checkout-modal" id="checkoutModal">
+    <div class="checkout-header-premium">
+      <button class="modal-back-btn" id="checkoutBackBtn" style="display:none;"><i class="fas fa-arrow-left"></i></button>
+      <div class="checkout-title-wrap">
+        <h2 id="checkoutMainTitle">Add Delivery Address</h2>
+      </div>
+      <button class="modal-close-btn-p" onclick="closeModal('checkout')"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="checkout-content-p">
+      <!-- STEP 1: ADDRESS -->
+      <div class="checkout-step active" id="stepAddress">
+        <form id="addressForm">
+          <div class="co-section">
+            <div class="form-group-p"><label>RECIPIENT'S NAME</label><input type="text" id="coFullName" placeholder="Enter recipient name" required></div>
+            <div class="form-group-p"><label>RECIPIENT'S PHONE</label><div class="phone-input-wrap"><img src="https://flagcdn.com/w20/in.png" alt="IN"><span>(+91)</span><input type="tel" id="coPhone" placeholder="Mobile Number" required></div></div>
+            <div class="co-grid-p">
+              <div class="form-group-p"><label>PIN CODE</label><input type="text" id="coPincode" placeholder="6-digit PIN" required></div>
+              <div class="form-group-p"><label>STATE</label><select id="coState" required><option value="Tamil Nadu">Tamil Nadu</option><option value="Kerala">Kerala</option><option value="Karnataka">Karnataka</option><option value="Andhra Pradesh">Andhra Pradesh</option></select></div>
+            </div>
+            <div class="form-group-p"><label>CITY / TOWN / DISTRICT</label><input type="text" id="coCity" placeholder="Enter city" required></div>
+            <div class="form-group-p"><label>FULL ADDRESS</label><textarea id="coAddress" placeholder="House No, Street Name, Landmark" required rows="3"></textarea></div>
+          </div>
+          <button type="button" class="btn-checkout-next" onclick="nextStep('Payment')">NEXT</button>
+        </form>
+      </div>
+
+      <!-- STEP 2: PAYMENT -->
+      <div class="checkout-step" id="stepPayment">
+        <div class="payment-options-list">
+          <div class="payment-option-item active" onclick="selectPayment('upi')">
+            <div class="payment-icon"><i class="fas fa-qrcode"></i></div>
+            <div class="payment-text"><strong>UPI</strong><small>PhonePe, GPay, BHIM & More</small></div>
+            <div class="payment-arrow"><i class="fas fa-chevron-right"></i></div>
+          </div>
+          <div class="payment-option-item disabled">
+            <div class="payment-icon"><i class="fas fa-credit-card"></i></div>
+            <div class="payment-text"><strong>Credit / Debit Card</strong><small>Rupay, Visa & Mastercard</small></div>
+            <div class="payment-arrow"><i class="fas fa-chevron-right"></i></div>
+          </div>
+          <div class="payment-option-item disabled">
+            <div class="payment-icon"><i class="fas fa-wallet"></i></div>
+            <div class="payment-text"><strong>Wallets</strong><small>Mobikwik, Airtel Money, Ola Money</small></div>
+            <div class="payment-arrow"><i class="fas fa-chevron-right"></i></div>
+          </div>
+          <div class="payment-option-item disabled">
+            <div class="payment-icon"><i class="fas fa-university"></i></div>
+            <div class="payment-text"><strong>Netbanking</strong><small>All major banks supported</small></div>
+            <div class="payment-arrow"><i class="fas fa-chevron-right"></i></div>
+          </div>
+        </div>
+        <button type="button" class="btn-checkout-next" onclick="nextStep('Summary')">PROCEED TO PAY</button>
+      </div>
+
+      <!-- STEP 3: SUMMARY -->
+      <div class="checkout-step" id="stepSummary">
+        <div class="order-preview-card">
+          <div id="checkoutOrderItems"></div>
+          <div class="co-totals-p">
+             <div class="co-row-p"><span>Subtotal</span><span id="coSubtotal">₹0</span></div>
+             <div class="co-row-p"><span>Shipping</span><span id="coShipping">FREE</span></div>
+             <div class="co-row-p co-grand-p"><span>Total Amount</span><span id="coTotal">₹0</span></div>
+          </div>
+        </div>
+        <div class="payment-method-tag">
+          <i class="fas fa-check-circle"></i> Paying via UPI to 8637489726
+        </div>
+        <button type="button" class="btn-checkout-next" style="background:#25D366" onclick="handleCheckoutFinal()"><i class="fab fa-whatsapp"></i> PLACE ORDER VIA WHATSAPP</button>
+        <p class="final-note">After clicking, share your order details on WhatsApp to complete the payment.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ORDER SUCCESS MODAL ============ -->
+  <div class="modal-overlay" id="orderSuccessOverlay"></div>
+  <div class="modal success-modal" id="orderSuccessModal">
+    <div class="success-content">
+      <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+      <h2>Order Placed!</h2>
+      <p>Order ID: <strong id="successOrderId"></strong></p>
+      <div id="successDetails"></div>
+      <button class="btn-dark" onclick="closeModal('orderSuccess'); location.reload();">CONTINUE SHOPPING</button>
+    </div>
+  </div>
+
+  <!-- ============ SEARCH OVERLAY ============ -->
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-box">
+      <button class="search-close-btn" id="searchClose"><i class="fas fa-times"></i></button>
+      <h2>What are you looking for?</h2>
+      <div class="search-input-wrap"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search shirts, pants, brands..." autocomplete="off"></div>
+      <div id="searchResults" class="search-results"></div>
+    </div>
+  </div>
+
+  <!-- ============ TOAST ============ -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ============ SCROLL TOP ============ -->
+  <button class="scroll-top-btn" id="scrollTop"><i class="fas fa-arrow-up"></i></button>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
