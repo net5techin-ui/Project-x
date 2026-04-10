@@ -466,7 +466,6 @@ window.selectPayment = (method) => {
   const selected = document.querySelector(`.payment-option-item[onclick="selectPayment('${method}')"]`);
   if (selected) {
     selected.classList.add('active');
-    }
   }
 
   // Handle QR Scan visibility
