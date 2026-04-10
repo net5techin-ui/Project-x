@@ -496,7 +496,7 @@ window.handleCheckoutFinal = async () => {
     await backend.placeOrder(payload);
 
     // 2. Prepare UPI Deep Link (Amazon Style)
-    const upiLink = `upi://pay?pa=8637489726@upi&pn=TN28%20Fashions&am=${grandTotal}&cu=INR&tn=Order%20${orderId}`;
+    const upiLink = `upi://pay?pa=9600447624@upi&pn=TN28%20Fashions&am=${grandTotal}&cu=INR&tn=Order%20${orderId}`;
     
     // 3. Prepare WhatsApp Message
     const whatsappNumber = "918637489726";
@@ -509,7 +509,7 @@ window.handleCheckoutFinal = async () => {
       `Shipping: ${ship === 0 ? 'FREE' : '₹' + ship}%0A` +
       `*Grand Total: ₹${grandTotal.toLocaleString()}*%0A%0A` +
       `💳 *PAYMENT METHOD:* UPI%0A` +
-      `Ref: Paid to 8637489726%0A%0A` +
+      `Ref: Paid to 9600447624%0A%0A` +
       `👤 *CUSTOMER DETAILS:*%0A` +
       `Name: ${payload.customer.name}%0A` +
       `Phone: ${payload.customer.phone}%0A%0A` +
