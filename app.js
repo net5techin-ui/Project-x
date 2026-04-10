@@ -79,6 +79,33 @@ function detectLocation() {
 }
 
 // ─── PRODUCTS ───
+window.initApp = async () => {
+  try {
+    // Show skeleton/loading state
+    const products = await backend.getProducts();
+    if (!products || products.length === 0) {
+       console.warn("No products from server, trying fallback...");
+       throw new Error("Empty products");
+    }
+    renderProducts(products);
+    updateCategoryCounts(products);
+  } catch (err) {
+    console.error('API Error, using fallback data:', err);
+    // Fallback to localStorage or products.json
+    const localData = JSON.parse(localStorage.getItem('tn28_products') || '[]');
+    if (localData.length > 0) {
+      renderProducts(localData);
+      updateCategoryCounts(localData);
+    } else {
+      // Last resort: fetch from local json file
+      const res = await fetch('products.json');
+      const data = await res.json();
+      renderProducts(data);
+      updateCategoryCounts(data);
+    }
+  }
+};
+
 async function handleLoadProducts() {
   try {
     const fetched = await backend.fetchProducts();
@@ -421,8 +448,8 @@ window.nextStep = (step) => {
     document.getElementById('progAddress').classList.add('active');
     document.getElementById('checkoutMainTitle').textContent = '1. Select a delivery address';
     document.getElementById('checkoutBackBtn').style.display = 'none';
-  } else if (step === 'Payment') {
-    // Validate Address fields before moving to Payment
+  } else if (step === 'Summary') {
+    // Validate Address fields before moving to Review (Summary)
     const name = document.getElementById('coFullName').value;
     const phone = document.getElementById('coPhone').value;
     const address = document.getElementById('coAddress').value;
@@ -431,20 +458,19 @@ window.nextStep = (step) => {
     
     if (!name || !phone || !address || !city || !pincode) {
       showToast('Please fill all required delivery fields', 'error');
-      // Revert progress
       document.getElementById('progAddress').classList.add('active');
       return;
     }
 
     document.getElementById('progAddress').classList.add('completed');
-    document.getElementById('progPayment').classList.add('active');
-    document.getElementById('checkoutMainTitle').textContent = '2. Select a payment method';
-    document.getElementById('checkoutBackBtn').style.display = 'flex';
-  } else if (step === 'Summary') {
-    document.getElementById('progAddress').classList.add('completed');
-    document.getElementById('progPayment').classList.add('completed');
     document.getElementById('progSummary').classList.add('active');
-    document.getElementById('checkoutMainTitle').textContent = '3. Review your order';
+    document.getElementById('checkoutMainTitle').textContent = '2. Review your order';
+    document.getElementById('checkoutBackBtn').style.display = 'flex';
+  } else if (step === 'Payment') {
+    document.getElementById('progAddress').classList.add('completed');
+    document.getElementById('progSummary').classList.add('completed');
+    document.getElementById('progPayment').classList.add('active');
+    document.getElementById('checkoutMainTitle').textContent = '3. Select a payment method';
     document.getElementById('checkoutBackBtn').style.display = 'flex';
   }
 
@@ -569,11 +595,14 @@ document.getElementById('checkoutBackBtn')?.addEventListener('click', () => {
   const paymentStep = document.getElementById('stepPayment');
   const summaryStep = document.getElementById('stepSummary');
 
-  if (paymentStep.classList.contains('active')) {
+  if (summaryStep.classList.contains('active')) {
     nextStep('Address');
-  } else if (summaryStep.classList.contains('active')) {
-    nextStep('Payment');
+  } else if (paymentStep.classList.contains('active')) {
+    nextStep('Summary');
   }
 });
 
 window.handleCheckoutFinal = handleCheckoutFinal;
+
+ w i n d o w . a d d E v e n t L i s t e n e r ( ' D O M C o n t e n t L o a d e d ' ,   i n i t A p p ) ;  
+ 

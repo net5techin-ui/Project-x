@@ -311,13 +311,13 @@
           <div class="step-dot">1</div>
           <div class="step-label">Address</div>
         </div>
-        <div class="progress-step" id="progPayment">
-          <div class="step-dot">2</div>
-          <div class="step-label">Payment</div>
-        </div>
         <div class="progress-step" id="progSummary">
-          <div class="step-dot">3</div>
+          <div class="step-dot">2</div>
           <div class="step-label">Review</div>
+        </div>
+        <div class="progress-step" id="progPayment">
+          <div class="step-dot">3</div>
+          <div class="step-label">Payment</div>
         </div>
       </div>
 
@@ -334,11 +334,32 @@
             <div class="form-group-p"><label>CITY / TOWN / DISTRICT</label><input type="text" id="coCity" placeholder="Enter city" required></div>
             <div class="form-group-p"><label>FULL ADDRESS</label><textarea id="coAddress" placeholder="House No, Street Name, Landmark" required rows="3"></textarea></div>
           </div>
-          <button type="button" class="btn-checkout-next" style="background: var(--amazon-yellow); border: 1px solid #FCD200; color: #111;" onclick="nextStep('Payment')">Use this address</button>
+          <button type="button" class="btn-checkout-next" style="background: var(--amazon-yellow); border: 1px solid #FCD200; color: #111;" onclick="nextStep('Summary')">Deliver to this address</button>
         </form>
       </div>
 
-      <!-- STEP 2: PAYMENT -->
+      <!-- STEP 2: REVIEW -->
+      <div class="checkout-step" id="stepSummary">
+        <div class="order-preview-card" style="background: #fff; border: 1px solid var(--border);">
+          <div style="font-size: 14px; font-weight: 700; margin-bottom: 12px; padding: 0 0 8px; border-bottom: 1px solid var(--bg);">Review your items and shipping</div>
+          <div id="checkoutOrderItems"></div>
+          <div class="co-totals-p">
+             <div class="co-row-p"><span>Items:</span><span id="coSubtotal">₹0</span></div>
+             <div class="co-row-p"><span>Shipping & handling:</span><span id="coShipping">₹0</span></div>
+             <div class="co-row-p" style="padding-top: 10px; border-top: 1px solid var(--bg); font-size: 16px; font-weight: 700; color: #B12704;">
+               <span>Order Total:</span><span id="coTotal">₹0</span>
+             </div>
+          </div>
+        </div>
+        
+        <div style="background: #F0F2F2; border-radius: 8px; padding: 16px; margin-bottom: 20px; border: 1px solid var(--border);">
+          <p style="font-size: 12px; line-height: 1.5; color: #565959;">By placing your order, you agree to TN28's <a href="#" style="color: var(--amazon-blue)">privacy notice</a> and <a href="#" style="color: var(--amazon-blue)">conditions of use</a>.</p>
+        </div>
+
+        <button type="button" class="btn-checkout-next" style="background: var(--amazon-yellow); border: 1px solid #FCD200; color: #111;" onclick="nextStep('Payment')">Continue to Payment</button>
+      </div>
+
+      <!-- STEP 3: PAYMENT -->
       <div class="checkout-step" id="stepPayment">
         <p style="font-size:13px;color:#111;font-weight:700;margin-bottom:12px;">Select a payment method</p>
         <div class="payment-options-list">
@@ -370,31 +391,11 @@
           <img id="qrImageElement" src="assets/phonepe-qr.png" style="width:180px; height:auto; margin:0 auto; display:block;">
           <p style="font-size:11px; margin-top:8px; color:var(--text-muted);">Sakthivel: 9600447624</p>
         </div>
-        <button type="button" class="btn-checkout-next" style="background: var(--amazon-yellow); border: 1px solid #FCD200; color: #111;" onclick="nextStep('Summary')">Continue</button>
-      </div>
-
-      <!-- STEP 3: SUMMARY -->
-      <div class="checkout-step" id="stepSummary">
-        <div class="order-preview-card" style="background: #fff; border: 1px solid var(--border);">
-          <div style="font-size: 14px; font-weight: 700; margin-bottom: 12px; padding: 0 0 8px; border-bottom: 1px solid var(--bg);">Review your order</div>
-          <div id="checkoutOrderItems"></div>
-          <div class="co-totals-p">
-             <div class="co-row-p"><span>Items:</span><span id="coSubtotal">₹0</span></div>
-             <div class="co-row-p"><span>Shipping & handling:</span><span id="coShipping">₹0</span></div>
-             <div class="co-row-p" style="padding-top: 10px; border-top: 1px solid var(--bg); font-size: 16px; font-weight: 700; color: #B12704;">
-               <span>Order Total:</span><span id="coTotal">₹0</span>
-             </div>
-          </div>
-        </div>
-        
-        <div style="background: #F0F2F2; border-radius: 8px; padding: 16px; margin-bottom: 20px; border: 1px solid var(--border);">
-          <p style="font-size: 12px; line-height: 1.5; color: #565959;">By placing your order, you agree to TN28's <a href="#" style="color: var(--amazon-blue)">privacy notice</a> and <a href="#" style="color: var(--amazon-blue)">conditions of use</a>.</p>
-        </div>
-
         <button type="button" class="btn-checkout-next" style="background: var(--amazon-orange); border: 1px solid #F08804; color: #fff;" onclick="handleCheckoutFinal()">
           Place your order and pay
         </button>
         <p class="final-note">Order details will be sent to sngagan54@gmail.com and WhatsApp.</p>
+      </div>
       </div>
     </div>
   </div>

@@ -137,7 +137,7 @@
     <div class="hero-particles" id="heroParticles"></div>
     <div class="hero-gradient"></div>
     <div class="hero-content">
-      <div class="hero-badge anim-up">EXCLUSIVE MEN'S COLLECTION 2026</div>
+      <div class="hero-badge anim-up">TN 28 APPARELS</div>
       <h1 class="hero-title anim-up d1">Redefine Your<br><span class="hero-accent">Style Statement</span></h1>
       <p class="hero-desc anim-up d2">Premium menswear curated for the modern gentleman. Formal suits, casual elegance, and everything in between.</p>
       <div class="hero-ctas anim-up d3">
@@ -428,13 +428,13 @@
           <div class="step-dot">1</div>
           <div class="step-label">Address</div>
         </div>
-        <div class="progress-step" id="progPayment">
-          <div class="step-dot">2</div>
-          <div class="step-label">Payment</div>
-        </div>
         <div class="progress-step" id="progSummary">
-          <div class="step-dot">3</div>
+          <div class="step-dot">2</div>
           <div class="step-label">Review</div>
+        </div>
+        <div class="progress-step" id="progPayment">
+          <div class="step-dot">3</div>
+          <div class="step-label">Payment</div>
         </div>
       </div>
 
@@ -451,11 +451,27 @@
             <div class="form-group-p"><label>CITY / TOWN / DISTRICT</label><input type="text" id="coCity" placeholder="Enter city" required></div>
             <div class="form-group-p"><label>FULL ADDRESS</label><textarea id="coAddress" placeholder="House No, Street Name, Landmark" required rows="3"></textarea></div>
           </div>
-          <button type="button" class="btn-checkout-next" style="background: var(--amazon-yellow); border: 1px solid #FCD200; color: #111; box-shadow: 0 2px 5px rgba(213,217,217,0.5);" onclick="nextStep('Payment')">Use this address</button>
+          <button type="button" class="btn-checkout-next" style="background: var(--amazon-yellow); border: 1px solid #FCD200; color: #111; box-shadow: 0 2px 5px rgba(213,217,217,0.5);" onclick="nextStep('Summary')">Deliver to this address</button>
         </form>
       </div>
 
-      <!-- STEP 2: PAYMENT -->
+      <!-- STEP 2: REVIEW -->
+      <div class="checkout-step" id="stepSummary">
+        <div class="order-preview-card" style="background: #fff; border: 1px solid var(--border);">
+          <div style="font-size: 14px; font-weight: 700; margin-bottom: 12px; padding: 0 0 8px; border-bottom: 1px solid var(--bg);">Review your items and shipping</div>
+          <div id="checkoutOrderItems"></div>
+          <div class="co-totals-p">
+             <div class="co-row-p"><span>Items:</span><span id="coSubtotal">₹0</span></div>
+             <div class="co-row-p"><span>Shipping & handling:</span><span id="coShipping">₹0</span></div>
+             <div class="co-row-p" style="padding-top: 10px; border-top: 1px solid var(--bg); font-size: 16px; font-weight: 700; color: #B12704;">
+               <span>Order Total:</span><span id="coTotal">₹0</span>
+             </div>
+          </div>
+        </div>
+        <button type="button" class="btn-checkout-next" style="background: var(--amazon-yellow); border: 1px solid #FCD200; color: #111;" onclick="nextStep('Payment')">Continue to Payment</button>
+      </div>
+
+      <!-- STEP 3: PAYMENT -->
       <div class="checkout-step" id="stepPayment">
         <p style="font-size:13px;color:#111;font-weight:700;margin-bottom:12px;">Select a payment method</p>
         <div class="payment-options-list">
