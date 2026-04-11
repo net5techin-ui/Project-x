@@ -78,27 +78,23 @@ export async function fetchProducts() {
 export async function saveProduct(product) {
   console.log('💾 Saving product to Supabase:', product.name);
   try {
-    // PREPARE PAYLOAD: Only include columns that actually exist in the DB
-    // to avoid "column does not exist" errors.
+    // PREPARE PAYLOAD: Only include columns confirmed to exist in the DB
+    // Current confirmed columns: [id, title, price, description, category, image, stock]
     const dbPayload = {
-      name: product.name || 'New Product',
-      brand: product.brand || 'TN28',
+      title: product.name || 'New Product',
       price: Number(product.price) || 0,
-      originalPrice: Number(product.originalPrice) || null,
       description: product.description || '',
       category: product.category || 'casual',
       image: product.image || '',
-      stock: Number(product.stock) || 0,
-      isNew: !!product.isNew,
-      isSale: !!product.isSale,
-      isHot: !!product.isHot,
-      fabric: product.fabric || 'Premium Cotton',
-      sizes: product.sizes || ['M', 'L', 'XL'],
-      colors: product.colors || ['#000000']
+      stock: Number(product.stock) || 0
     };
 
-    // Include ID only if it exists (for updates)
-    if (product.id) dbPayload.id = product.id;
+    // Include ID only for updates
+    if (product.id) dbPayload.id = Number(product.id);
+
+    // Note: 'brand', 'isNew', 'isSale', 'isHot', 'fabric', 'sizes', 'colors' 
+    // are missing from your current database table. 
+    // They will be handled locally for now until the DB is updated.
 
     const { data, error } = await supabase
       .from('products')

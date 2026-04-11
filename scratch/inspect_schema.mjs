@@ -5,15 +5,26 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-async function inspectSchema() {
-  const { data, error } = await supabase.from('products').select('*').limit(1);
+async function checkSchema() {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .limit(1);
+  
   if (error) {
-    console.error('Error:', error);
-  } else if (data && data.length > 0) {
-    console.log('Found product. Column keys:', Object.keys(data[0]));
+    console.error('Error fetching products:', error);
+    return;
+  }
+  
+  if (data && data.length > 0) {
+    console.log('Columns in products table:', Object.keys(data[0]));
   } else {
-    console.log('No data found in products table.');
+    // If table is empty, try to get column info from information_schema (might not have permissions)
+    console.log('Table is empty, trying direct column fetch...');
+    const { data: colData, error: colError } = await supabase.rpc('get_table_columns', { table_name: 'products' });
+    if (colError) console.error('RPC Error:', colError);
+    else console.log('Columns:', colData);
   }
 }
 
-inspectSchema();
+checkSchema();
