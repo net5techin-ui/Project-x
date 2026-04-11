@@ -1,7 +1,7 @@
-// TN28 Men's Fashion Store — Premium Animated Storefront
+// TN28 Men's Fashion Store - Premium Animated Storefront
 import * as backend from './backend-config.js';
 
-// ─── DEFAULT MEN'S CLOTHING DATA ───
+// --- DEFAULT MEN'S CLOTHING DATA ---
 const defaultProducts = [
   { id: 1, name: "Premium Slim Fit Formal Shirt", brand: "Urbandesign", category: "formal", price: 2499, originalPrice: 3999, image: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=500&q=80", sizes: ["S","M","L","XL","XXL"], colors: ["#1B2A4A","#FFFFFF","#F5E6D0"], fabric: "Premium Cotton", stock: 45, rating: 4.5, reviews: 128, isNew: true, isSale: false, isHot: false, description: "Impeccably tailored slim fit formal shirt crafted from premium Egyptian cotton." },
   { id: 2, name: "Classic Chino Trousers", brand: "Some", category: "casual", price: 1899, originalPrice: 2999, image: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=500&q=80", sizes: ["30","32","34","36","38"], colors: ["#D4BC8B","#1B2A4A","#0D0D0D"], fabric: "Cotton Twill", stock: 62, rating: 4.3, reviews: 95, isNew: true, isSale: true, isHot: false, description: "Classic fit chino trousers with comfortable stretch and a tailored look." },
@@ -11,22 +11,31 @@ const defaultProducts = [
   { id: 6, name: "Linen Summer Shirt", brand: "Haestor", category: "casual", price: 1599, originalPrice: 2499, image: "https://images.unsplash.com/photo-1596755094514-f8d13a027376?w=500&q=80", sizes: ["M","L","XL"], colors: ["#FFFFFF","#3498db"], fabric: "Linen", stock: 50, rating: 4.4, reviews: 110, isNew: true, isSale: true, isHot: false, description: "Breathable linen shirt by Haestor, perfect for summer days." }
 ];
 
-// ─── STATE ───
+// --- STATE ---
 let products = [];
 let cart = [];
 let heroSlideIndex = 0;
 let heroInterval = null;
 
-// ─── INIT ───
-document.addEventListener('DOMContentLoaded', async () => {
+// --- INIT ---
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. Initialize UI listeners IMMEDIATELY (Non-blocking)
+  initEventListeners();
+  loadCart();
+  updateCartBadge();
+  initHeroSlider();
+  initParticles();
+  
+  // 2. Start data loading (Async, background)
+  handleLoadProducts().then(() => {
+    renderAll();
+    initScrollAnimations();
+    initCountUp();
+  });
 
-  // Location Detection
+  // 3. Misc background tasks
   detectLocation();
 
-  // Load products
-  await handleLoadProducts();
-
-  // Supabase real-time sync
   if (backend.onProductsChange) {
     backend.onProductsChange((updated) => {
       if (updated && updated.length > 0) {
@@ -37,27 +46,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // LocalStorage sync
   window.addEventListener('storage', async (e) => {
     if (!e.key || e.key === 'tn28_products') {
       await handleLoadProducts();
       renderAll(document.querySelector('.filter-btn.active')?.dataset.filter || 'all');
     }
   });
-
-  loadCart();
-  renderAll();
-
-  initHeroSlider();
-  initEventListeners();
-  initScrollAnimations();
-
-  initCountUp();
-  initParticles();
-  updateCartBadge();
 });
 
-// ─── LOCATION ───
+// --- LOAD APP DATA ---
+async function initApp() {
+  try {
+    const fetched = await backend.getProducts();
+    if (!fetched || fetched.length === 0) throw new Error("Empty products");
+    products = fetched;
+    renderAll();
+  } catch (err) {
+    console.error('API Error, using fallback:', err);
+    loadCart();
+    renderAll();
+  }
+}
+
+// --- LOCATION ---
 function detectLocation() {
   const el = document.getElementById('userLocation');
   if (!el) return;
@@ -78,48 +89,28 @@ function detectLocation() {
   } else { el.textContent = defaultLoc; }
 }
 
-// ─── PRODUCTS ───
-window.initApp = async () => {
-  try {
-    // Show skeleton/loading state
-    const products = await backend.getProducts();
-    if (!products || products.length === 0) {
-       console.warn("No products from server, trying fallback...");
-       throw new Error("Empty products");
-    }
-    renderProducts(products);
-    updateCategoryCounts(products);
-  } catch (err) {
-    console.error('API Error, using fallback data:', err);
-    // Fallback to localStorage or products.json
-    const localData = JSON.parse(localStorage.getItem('tn28_products') || '[]');
-    if (localData.length > 0) {
-      renderProducts(localData);
-      updateCategoryCounts(localData);
-    } else {
-      // Last resort: fetch from local json file
-      const res = await fetch('products.json');
-      const data = await res.json();
-      renderProducts(data);
-      updateCategoryCounts(data);
-    }
-  }
-};
-
 async function handleLoadProducts() {
   try {
     const fetched = await backend.fetchProducts();
     const isInit = localStorage.getItem('tn28_initialized');
-    if (fetched && fetched.length > 0) { products = fetched; localStorage.setItem('tn28_initialized', 'true'); }
-    else if (isInit) { products = []; }
-    else { products = [...defaultProducts]; }
-  } catch { products = [...defaultProducts]; }
+    if (fetched && fetched.length > 0) { 
+      products = fetched; 
+      localStorage.setItem('tn28_initialized', 'true'); 
+    } else if (!isInit) { 
+      products = [...defaultProducts]; 
+    }
+  } catch { 
+    products = [...defaultProducts]; 
+  }
   renderAll();
 }
 
-function renderAll(filter = 'all') { renderNewArrivals(); renderFeatured(filter); }
+function renderAll(filter = 'all') { 
+  renderNewArrivals(); 
+  renderFeatured(filter); 
+}
 
-// ─── PRODUCT CARD ───
+// --- PRODUCT CARD ---
 function createProductCard(product) {
   const discount = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0;
   const pid = product.id || product.fbId;
@@ -156,16 +147,33 @@ function createProductCard(product) {
     </div>`;
 }
 
-function renderNewArrivals() { const g = document.getElementById('newArrivalsGrid'); if (!g) return; g.innerHTML = products.filter(p => p.isNew).slice(0,4).map(createProductCard).join(''); activateReveal(); }
+function renderNewArrivals() { 
+  const g = document.getElementById('newArrivalsGrid'); 
+  if (!g) return; 
+  g.innerHTML = products.filter(p => p.isNew).slice(0,4).map(createProductCard).join(''); 
+  activateReveal(); 
+}
+
 function renderFeatured(filter = 'all', type = 'category') {
-  const g = document.getElementById('featuredGrid'); if (!g) return;
+  const g = document.getElementById('featuredGrid'); 
+  if (!g) return;
   const f = filter === 'all' ? products : products.filter(p => p[type] === filter);
-  g.innerHTML = f.slice(0,8).map(createProductCard).join(''); activateReveal();
+  g.innerHTML = f.slice(0,8).map(createProductCard).join(''); 
+  activateReveal();
   if (type === 'category') document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
 }
 
+function filterByCategory(cat) {
+  renderFeatured(cat, 'category');
+  document.getElementById('featured')?.scrollIntoView({ behavior: 'smooth' });
+}
 
-// ─── HERO SLIDER ───
+function filterByBrand(brand) {
+  renderFeatured(brand, 'brand');
+  document.getElementById('featured')?.scrollIntoView({ behavior: 'smooth' });
+}
+
+// --- HERO SLIDER ---
 function initHeroSlider() {
   const slides = document.querySelectorAll('.hero-bg-image');
   if (!slides.length) return;
@@ -176,9 +184,10 @@ function initHeroSlider() {
   }, 6000);
 }
 
-// ─── PARTICLES ───
+// --- PARTICLES ---
 function initParticles() {
-  const c = document.getElementById('heroParticles'); if (!c) return;
+  const c = document.getElementById('heroParticles'); 
+  if (!c) return;
   for (let i = 0; i < 30; i++) {
     const p = document.createElement('div');
     p.style.cssText = `position:absolute;width:${Math.random()*4+1}px;height:${Math.random()*4+1}px;background:rgba(200,169,110,${Math.random()*0.3+0.1});border-radius:50%;left:${Math.random()*100}%;top:${Math.random()*100}%;animation:float ${Math.random()*4+3}s ease-in-out infinite;animation-delay:${Math.random()*3}s;`;
@@ -186,7 +195,7 @@ function initParticles() {
   }
 }
 
-// ─── COUNT UP ───
+// --- COUNT UP ---
 function initCountUp() {
   const nums = document.querySelectorAll('.stat-num');
   const obs = new IntersectionObserver((entries) => {
@@ -208,53 +217,55 @@ function initCountUp() {
   nums.forEach(n => obs.observe(n));
 }
 
-// ─── CART ───
+// --- CART ---
 function loadCart() { cart = JSON.parse(localStorage.getItem('tn28_cart') || '[]'); }
 function saveCart() { localStorage.setItem('tn28_cart', JSON.stringify(cart)); updateCartBadge(); renderCart(); }
+
 function addToCart(pid, qty = 1, size = null) {
-  const p = products.find(x => (x.id == pid || x.fbId == pid)); if (!p) return;
+  const p = products.find(x => (x.id == pid || x.fbId == pid)); 
+  if (!p) return;
   const ex = cart.find(i => (i.id == pid || i.fbId == pid) && i.size === size);
   if (ex) ex.qty += qty;
   else cart.push({ id: p.id, fbId: p.fbId, qty, size: size || p.sizes[0], name: p.name, price: p.price, image: p.image, brand: p.brand });
-  saveCart(); showToast(`${p.name} added to cart!`, 'success');
+  saveCart(); 
+  showToast(`${p.name} added to cart!`, 'success');
 }
+
 function removeFromCart(i) { cart.splice(i, 1); saveCart(); }
 function updateCartQty(i, d) { cart[i].qty += d; if (cart[i].qty <= 0) cart.splice(i, 1); saveCart(); }
+
 function renderCart() {
   const c = document.getElementById('cartItems'), f = document.getElementById('cartFooter'), em = document.getElementById('cartEmpty');
   if (!c) return;
-  
   if (cart.length === 0) {
     if (em) em.style.display = 'block';
     if (f) f.style.display = 'none';
     c.innerHTML = '';
     return;
   }
-
   if (em) em.style.display = 'none';
   if (f) f.style.display = 'block';
-  
   let total = 0;
   c.innerHTML = cart.map((item, i) => {
     total += item.price * item.qty;
-    return `<div class="cart-item">
-      <div class="cart-item-image"><img src="${item.image}" alt="${item.name}"></div>
-      <div class="cart-item-details">
-        <div class="cart-item-name">${item.name}</div>
-        <div class="cart-item-meta">${item.brand} • Size: ${item.size}</div>
-        <div class="cart-item-bottom">
-          <span class="cart-item-price">₹${(item.price*item.qty).toLocaleString()}</span>
-          <div class="cart-item-qty">
-            <button onclick="updateCartQty(${i},-1)">−</button>
-            <span>${item.qty}</span>
-            <button onclick="updateCartQty(${i},1)">+</button>
+    return `
+      <div class="cart-item">
+        <div class="cart-item-image"><img src="${item.image}" alt="${item.name}"></div>
+        <div class="cart-item-details">
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-meta">${item.brand} • Size: ${item.size}</div>
+          <div class="cart-item-bottom">
+            <span class="cart-item-price">₹${(item.price*item.qty).toLocaleString()}</span>
+            <div class="cart-item-qty">
+              <button onclick="updateCartQty(${i},-1)">−</button>
+              <span>${item.qty}</span>
+              <button onclick="updateCartQty(${i},1)">+</button>
+            </div>
+            <span class="cart-item-remove" onclick="removeFromCart(${i})"><i class="fas fa-trash"></i></span>
           </div>
-          <span class="cart-item-remove" onclick="removeFromCart(${i})"><i class="fas fa-trash"></i></span>
         </div>
-      </div>
-    </div>`;
+      </div>`;
   }).join('');
-  
   if (document.getElementById('cartTotal')) {
     document.getElementById('cartTotal').textContent = `₹${total.toLocaleString()}`;
   }
@@ -263,8 +274,6 @@ function renderCart() {
 function buyNow(pid) {
   const p = products.find(x => (x.id == pid || x.fbId == pid));
   if (!p) return;
-  // Clear current cart if desired, or just add and checkout. 
-  // User usually expects "Buy Now" to focus on that one item.
   cart = [{ id: p.id, fbId: p.fbId, qty: 1, size: p.sizes[0], name: p.name, price: p.price, image: p.image, brand: p.brand }];
   saveCart();
   openCheckoutModal();
@@ -272,42 +281,63 @@ function buyNow(pid) {
 
 function updateCartBadge() { const e = document.getElementById('cartBadge'); if (e) e.textContent = cart.reduce((s,i) => s + i.qty, 0); }
 
-
-
-// ─── QUICK VIEW ───
+// --- QUICK VIEW ---
 function openQuickView(pid) {
-  const p = products.find(x => (x.id == pid || x.fbId == pid)); if (!p) return;
+  const p = products.find(x => (x.id == pid || x.fbId == pid)); 
+  if (!p) return;
   document.getElementById('qvImage').src = p.image;
   document.getElementById('qvBrand').textContent = p.brand;
   document.getElementById('qvName').textContent = p.name;
   document.getElementById('qvPrice').textContent = `₹${p.price.toLocaleString()}`;
   document.getElementById('qvDescription').textContent = p.description || '';
   document.getElementById('qvSizes').innerHTML = p.sizes.map((s,i) => `<button class="size-option${i===0?' active':''}" onclick="selectSize(this)">${s}</button>`).join('');
-  document.getElementById('qvAddToCart').onclick = () => { const size = document.querySelector('#qvSizes .size-option.active')?.textContent; addToCart(pid, parseInt(document.getElementById('qvQty').value||1), size); closeModal('quickView'); };
+  document.getElementById('qvAddToCart').onclick = () => { 
+    const size = document.querySelector('#qvSizes .size-option.active')?.textContent; 
+    addToCart(pid, parseInt(document.getElementById('qvQty').value||1), size); 
+    closeModal('quickView'); 
+  };
   openModal('quickView');
 }
-function selectSize(el) { el.parentElement.querySelectorAll('.size-option').forEach(s => s.classList.remove('active')); el.classList.add('active'); }
 
-// ─── MODALS ───
-function openModal(name) { document.getElementById(`${name}Overlay`).classList.add('active'); document.getElementById(`${name}Modal`).classList.add('active'); document.body.style.overflow = 'hidden'; }
-function closeModal(name) { document.getElementById(`${name}Overlay`).classList.remove('active'); document.getElementById(`${name}Modal`).classList.remove('active'); document.body.style.overflow = ''; }
-
-// ─── TOAST ───
-function showToast(msg, type = '') {
-  const c = document.getElementById('toastContainer'); if (!c) return;
-  const t = document.createElement('div'); t.className = `toast ${type}`;
-  t.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':'info-circle'}"></i> ${msg}`;
-  c.appendChild(t); setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(30px)'; setTimeout(() => t.remove(), 500); }, 3000);
+function selectSize(el) { 
+  el.parentElement.querySelectorAll('.size-option').forEach(s => s.classList.remove('active')); 
+  el.classList.add('active'); 
 }
 
-// ─── TIMER ───
+// --- MODALS ---
+function openModal(name) { 
+  document.getElementById(`${name}Overlay`).classList.add('active'); 
+  document.getElementById(`${name}Modal`).classList.add('active'); 
+  document.body.style.overflow = 'hidden'; 
+}
 
+function closeModal(name) { 
+  document.getElementById(`${name}Overlay`).classList.remove('active'); 
+  document.getElementById(`${name}Modal`).classList.remove('active'); 
+  document.body.style.overflow = ''; 
+}
 
-// ─── SCROLL ANIMATIONS ───
+// --- TOAST ---
+function showToast(msg, type = '') {
+  const c = document.getElementById('toastContainer'); 
+  if (!c) return;
+  const t = document.createElement('div'); 
+  t.className = `toast ${type}`;
+  t.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':'info-circle'}"></i> ${msg}`;
+  c.appendChild(t); 
+  setTimeout(() => { 
+    t.style.opacity = '0'; 
+    t.style.transform = 'translateX(30px)'; 
+    setTimeout(() => t.remove(), 500); 
+  }, 3000);
+}
+
+// --- SCROLL ANIMATIONS ---
 function initScrollAnimations() {
   const obs = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); }); }, { threshold: 0.1 });
   document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 }
+
 function activateReveal() {
   setTimeout(() => {
     const obs = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); }); }, { threshold: 0.1 });
@@ -315,43 +345,86 @@ function activateReveal() {
   }, 100);
 }
 
-// ─── EVENTS ───
+// --- EVENTS ---
 function initEventListeners() {
-  // Scroll effects
   window.addEventListener('scroll', () => {
-    document.getElementById('header').classList.toggle('scrolled', window.scrollY > 50);
-    document.getElementById('scrollTop').classList.toggle('active', window.scrollY > 500);
+    const h = document.getElementById('header');
+    if (h) h.classList.toggle('scrolled', window.scrollY > 50);
+    const st = document.getElementById('scrollTop');
+    if (st) st.classList.toggle('active', window.scrollY > 500);
   });
-  document.getElementById('scrollTop').onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  const st = document.getElementById('scrollTop');
+  if (st) st.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
   // Mobile menu
-  document.getElementById('mobileMenuBtn').onclick = () => { document.getElementById('mobileMenu').classList.add('active'); document.getElementById('mobileMenuOverlay').classList.add('active'); };
-  const closeMob = () => { document.getElementById('mobileMenu').classList.remove('active'); document.getElementById('mobileMenuOverlay').classList.remove('active'); };
-  document.getElementById('closeMobileMenu').onclick = closeMob;
-  document.getElementById('mobileMenuOverlay').onclick = closeMob;
+  const mmb = document.getElementById('mobileMenuBtn');
+  const mm = document.getElementById('mobileMenu');
+  const mmo = document.getElementById('mobileMenuOverlay');
+  
+  if (mmb && mm && mmo) {
+    mmb.addEventListener('click', (e) => {
+      e.stopPropagation();
+      mm.classList.add('active');
+      mmo.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    });
+  }
+
+  const closeMob = () => {
+    if (mm) mm.classList.remove('active');
+    if (mmo) mmo.classList.remove('active');
+    document.body.style.overflow = '';
+  };
+  
+  document.getElementById('closeMobileMenu')?.addEventListener('click', closeMob);
+  mmo?.addEventListener('click', closeMob);
   document.querySelectorAll('.mobile-nav-links a').forEach(a => a.addEventListener('click', closeMob));
 
   // Search
-  document.getElementById('searchBtn').onclick = () => { document.getElementById('searchOverlay').classList.add('active'); document.getElementById('searchInput').focus(); };
-  document.getElementById('searchClose').onclick = () => document.getElementById('searchOverlay').classList.remove('active');
-  document.getElementById('searchInput').addEventListener('input', handleSearch);
+  const sb = document.getElementById('searchBtn');
+  const so = document.getElementById('searchOverlay');
+  if (sb && so) {
+    sb.addEventListener('click', () => {
+      so.classList.add('active');
+      document.getElementById('searchInput')?.focus();
+      document.body.style.overflow = 'hidden';
+    });
+  }
+  
+  document.getElementById('searchClose')?.addEventListener('click', () => {
+    so?.classList.remove('active');
+    document.body.style.overflow = '';
+  });
+  
+  document.getElementById('searchInput')?.addEventListener('input', handleSearch);
 
   // Cart
-  document.getElementById('cartBtn').onclick = () => { renderCart(); document.getElementById('cartSidebar').classList.add('active'); document.getElementById('cartOverlay').classList.add('active'); };
-  const closeCartFn = () => { document.getElementById('cartSidebar').classList.remove('active'); document.getElementById('cartOverlay').classList.remove('active'); };
-  document.getElementById('closeCart').onclick = closeCartFn;
-  document.getElementById('cartOverlay').onclick = closeCartFn;
+  const cb = document.getElementById('cartBtn');
+  const cs = document.getElementById('cartSidebar');
+  const co = document.getElementById('cartOverlay');
+  if (cb && cs && co) {
+    cb.addEventListener('click', () => {
+      renderCart();
+      cs.classList.add('active');
+      co.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    });
+  }
 
-  // Quick View
-  document.getElementById('closeQuickView').onclick = () => closeModal('quickView');
-  document.getElementById('quickViewOverlay').onclick = () => closeModal('quickView');
+  const closeCartFn = () => {
+    cs?.classList.remove('active');
+    co?.classList.remove('active');
+    document.body.style.overflow = '';
+  };
+  
+  document.getElementById('closeCart')?.addEventListener('click', closeCartFn);
+  co?.addEventListener('click', closeCartFn);
+  document.getElementById('checkoutBtn')?.addEventListener('click', openCheckoutModal);
 
-
-
-  // Checkout
-  document.getElementById('checkoutBtn').onclick = () => { if (cart.length > 0) openCheckoutModal(); };
-  const checkoutFormEl = document.getElementById('checkoutForm');
-  if (checkoutFormEl) checkoutFormEl.addEventListener('submit', handleCheckout);
+  // Quick View Close
+  document.getElementById('closeQuickView')?.addEventListener('click', () => closeModal('quickView'));
+  document.getElementById('quickViewOverlay')?.addEventListener('click', () => closeModal('quickView'));
 
   // Filter buttons
   document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -362,86 +435,28 @@ function initEventListeners() {
   });
 
   // Qty buttons in quick view
-  const qtyMinus = document.getElementById('qvQtyMinus');
-  const qtyPlus = document.getElementById('qvQtyPlus');
   const qtyInput = document.getElementById('qvQty');
-  if (qtyMinus) qtyMinus.onclick = () => { const v = parseInt(qtyInput.value); if (v > 1) qtyInput.value = v - 1; };
-  if (qtyPlus) qtyPlus.onclick = () => { const v = parseInt(qtyInput.value); if (v < 10) qtyInput.value = v + 1; };
+  document.getElementById('qvQtyMinus')?.addEventListener('click', () => {
+    const v = parseInt(qtyInput.value);
+    if (v > 1) qtyInput.value = v - 1;
+  });
+  document.getElementById('qvQtyPlus')?.addEventListener('click', () => {
+    const v = parseInt(qtyInput.value);
+    if (v < 10) qtyInput.value = v + 1;
+  });
 
   // Newsletter
-  const nlForm = document.getElementById('newsletterForm');
-  if (nlForm) nlForm.addEventListener('submit', (e) => {
+  document.getElementById('newsletterForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
-    const card = nlForm.closest('.newsletter-card');
+    const card = e.target.closest('.newsletter-card');
     if (card) {
-      card.innerHTML = `<div style="text-align:center;padding:20px;"><div style="font-size:48px;margin-bottom:16px;">🎉</div><h2 style="margin-bottom:8px;">Thank You!</h2><p style="opacity:0.8;">You've been subscribed. Get ready for exclusive offers and style updates from TN28!</p><p style="margin-top:16px;opacity:0.6;">Keep visiting our website for amazing deals!</p></div>`;
+      card.innerHTML = `<div style="text-align:center;padding:20px;"><div style="font-size:48px;margin-bottom:16px;">🎉</div><h2 style="margin-bottom:8px;">Thank You!</h2><p style="opacity:0.8;">You've been subscribed. Get ready for exclusive offers and style updates from TN28!</p></div>`;
     }
   });
 }
 
-// ─── CHECKOUT ───
-async function handleCheckout(e) {
-  e.preventDefault();
-  const btn = document.getElementById('placeOrderBtn');
-  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESSING...';
-  const total = cart.reduce((s,i) => s + (i.price * i.qty), 0);
-  const payload = {
-    customer: { name: document.getElementById('coFullName').value, email: document.getElementById('coEmail').value, phone: document.getElementById('coPhone').value },
-    address: { street: document.getElementById('coAddress').value, city: document.getElementById('coCity').value, state: document.getElementById('coState').value, pincode: document.getElementById('coPincode').value, landmark: document.getElementById('coLandmark').value },
-    items: cart.map(i => ({ name: i.name, brand: i.brand, price: i.price, qty: i.qty, size: i.size, image: i.image, productId: i.id || i.fbId })),
-    itemCount: cart.reduce((s,i) => s + i.qty, 0), total, shipping: Math.round(total * 0.10), grandTotal: Math.round(total * 1.10)
-  };
-  try {
-    const result = await backend.placeOrder(payload);
-    closeModal('checkout');
-    document.getElementById('successDetails').innerHTML = `<p style="margin:12px 0">Total: ₹${payload.grandTotal.toLocaleString()}</p><p style="font-size:14px;color:#64748B">You'll receive a confirmation email shortly.</p>`;
-    openModal('orderSuccess');
-    cart = []; saveCart();
-    document.getElementById('cartSidebar').classList.remove('active'); document.getElementById('cartOverlay').classList.remove('active');
-    showToast('Order placed successfully!', 'success');
-  } catch (err) { showToast('Order failed: ' + err.message, 'error'); }
-  finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-lock"></i> PLACE ORDER'; }
-}
-
-function openCheckoutModal() {
-  const items = document.getElementById('checkoutOrderItems');
-  let total = 0;
-  items.innerHTML = cart.map(i => { total += i.price * i.qty; return `<div style="display:flex;align-items:center;gap:12px;padding:10px;background:#F8FAFC;border-radius:8px;margin-bottom:8px"><img src="${i.image}" style="width:48px;height:60px;object-fit:cover;border-radius:6px"><div style="flex:1"><div style="font-weight:600;font-size:13px">${i.name}</div><div style="font-size:11px;color:#64748B">${i.brand} • Size: ${i.size} • Qty: ${i.qty}</div></div><div style="font-weight:700">₹${(i.price*i.qty).toLocaleString()}</div></div>`; }).join('');
-  const ship = Math.round(total * 0.10);
-  document.getElementById('coSubtotal').textContent = `₹${total.toLocaleString()}`;
-  document.getElementById('coShipping').textContent = `₹${ship.toLocaleString()}`;
-  document.getElementById('coTotal').textContent = `₹${(total + ship).toLocaleString()}`;
-  
-  // Start from Address step (Amazon style)
-  nextStep('Address');
-  openModal('checkout');
-}
-
-// ─── SEARCH ───
-function handleSearch() {
-  const q = document.getElementById('searchInput').value.toLowerCase().trim();
-  const r = document.getElementById('searchResults');
-  if (q.length < 2) { r.innerHTML = ''; return; }
-  const results = products.filter(p => p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q));
-  r.innerHTML = results.map(p => `<div style="display:flex;align-items:center;gap:12px;padding:12px;cursor:pointer;border-radius:8px;transition:all 0.3s" onmouseover="this.style.background='#F1F5F9'" onmouseout="this.style.background=''" onclick="openQuickView('${p.id||p.fbId}');document.getElementById('searchOverlay').classList.remove('active')"><img src="${p.image}" style="width:50px;height:60px;object-fit:cover;border-radius:6px"><div><div style="font-weight:600;font-size:14px">${p.name}</div><div style="font-size:12px;color:#64748B">₹${p.price.toLocaleString()} • ${p.brand}</div></div></div>`).join('');
-}
-
-// ─── GLOBAL ───
-window.addToCart = addToCart;
-window.buyNow = buyNow;
-window.removeFromCart = removeFromCart;
-window.updateCartQty = updateCartQty;
-window.toggleWishlist = () => {};
-window.openQuickView = openQuickView;
-window.selectSize = selectSize;
-window.closeModal = closeModal;
-window.openCheckoutModal = openCheckoutModal;
-window.filterByBrand = (b) => renderFeatured(b, 'brand');
-window.filterByCategory = (c) => renderFeatured(c, 'category');
-
-// ─── MULTI-STEP CHECKOUT LOGIC ───
+// --- MULTI-STEP CHECKOUT LOGIC ---
 window.nextStep = (step) => {
-  // Update Progress Tracker
   document.querySelectorAll('.progress-step').forEach(s => s.classList.remove('active', 'completed'));
   
   if (step === 'Address') {
@@ -449,7 +464,6 @@ window.nextStep = (step) => {
     document.getElementById('checkoutMainTitle').textContent = '1. Select a delivery address';
     document.getElementById('checkoutBackBtn').style.display = 'none';
   } else if (step === 'Summary') {
-    // Validate Address fields before moving to Review (Summary)
     const name = document.getElementById('coFullName').value;
     const phone = document.getElementById('coPhone').value;
     const address = document.getElementById('coAddress').value;
@@ -461,7 +475,6 @@ window.nextStep = (step) => {
       document.getElementById('progAddress').classList.add('active');
       return;
     }
-
     document.getElementById('progAddress').classList.add('completed');
     document.getElementById('progSummary').classList.add('active');
     document.getElementById('checkoutMainTitle').textContent = '2. Review your order';
@@ -474,7 +487,6 @@ window.nextStep = (step) => {
     document.getElementById('checkoutBackBtn').style.display = 'flex';
   }
 
-  // Toggle steps
   document.querySelectorAll('.checkout-step').forEach(s => s.classList.remove('active'));
   document.getElementById(`step${step}`).classList.add('active');
 };
@@ -483,126 +495,83 @@ window.selectPayment = (method) => {
   document.querySelectorAll('.payment-option-item').forEach(item => {
     item.classList.remove('active');
     const arrow = item.querySelector('.payment-arrow i');
-    if (arrow) {
-      arrow.className = 'far fa-circle';
-      arrow.style.color = 'var(--text-light)';
-    }
+    if (arrow) { arrow.className = 'far fa-circle'; arrow.style.color = 'var(--text-light)'; }
   });
-  
   const selected = document.querySelector(`.payment-option-item[onclick="selectPayment('${method}')"]`);
-  if (selected) {
-    selected.classList.add('active');
-  }
-
-  // Handle QR Scan visibility
+  if (selected) selected.classList.add('active');
   const qrDisplay = document.getElementById('qrCodeDisplay');
-  if (qrDisplay) {
-    qrDisplay.style.display = method === 'qr_scan' ? 'block' : 'none';
-  }
+  if (qrDisplay) qrDisplay.style.display = method === 'qr_scan' ? 'block' : 'none';
+};
+
+window.openCheckoutModal = () => {
+  const items = document.getElementById('checkoutOrderItems');
+  let total = 0;
+  items.innerHTML = cart.map(i => { 
+    total += i.price * i.qty; 
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px;background:#F8FAFC;border-radius:8px;margin-bottom:8px"><img src="${i.image}" style="width:48px;height:60px;object-fit:cover;border-radius:6px"><div style="flex:1"><div style="font-weight:600;font-size:13px">${i.name}</div><div style="font-size:11px;color:#64748B">${i.brand} • Size: ${i.size} • Qty: ${i.qty}</div></div><div style="font-weight:700">₹${(i.price*i.qty).toLocaleString()}</div></div>`; 
+  }).join('');
+  const ship = Math.round(total * 0.10);
+  document.getElementById('coSubtotal').textContent = `₹${total.toLocaleString()}`;
+  document.getElementById('coShipping').textContent = `₹${ship.toLocaleString()}`;
+  document.getElementById('coTotal').textContent = `₹${(total + ship).toLocaleString()}`;
+  nextStep('Address');
+  openModal('checkout');
 };
 
 window.handleCheckoutFinal = async () => {
-  const btn = document.querySelector('.btn-checkout-next[style*="background:#000"]');
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> INITIALIZING PAYMENT...';
-  }
-
+  const btn = document.querySelector('.btn-checkout-next[style*="background:#000"], .btn-checkout-next[style*="background: black"]');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> INITIALIZING...'; }
   const orderId = 'TN28-' + Date.now().toString(36).toUpperCase();
   const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
   const ship = Math.round(total * 0.10);
   const grandTotal = total + ship;
-
   const payload = {
     orderId,
-    customer: {
-      name: document.getElementById('coFullName').value,
-      phone: document.getElementById('coPhone').value
+    customer: { name: document.getElementById('coFullName').value, phone: document.getElementById('coPhone').value },
+    address: { 
+      street: document.getElementById('coAddress').value, 
+      city: document.getElementById('coCity').value, 
+      state: document.getElementById('coState').value, 
+      pincode: document.getElementById('coPincode').value 
     },
-    address: {
-      street: document.getElementById('coAddress').value,
-      city: document.getElementById('coCity').value,
-      state: document.getElementById('coState').value,
-      pincode: document.getElementById('coPincode').value
-    },
-    items: cart,
-    total,
-    shipping: ship,
-    grandTotal,
-    status: 'pending'
+    items: cart, total, shipping: ship, grandTotal, status: 'pending'
   };
-
   try {
-    // 1. Save order to backend
     await backend.placeOrder(payload);
-
-    // 2. Prepare UPI Deep Link (Amazon Style)
-    const upiLink = `upi://pay?pa=9600447624@upi&pn=TN28%20Fashions&am=${grandTotal}&cu=INR&tn=Order%20${orderId}`;
-    
-    // 3. Prepare WhatsApp Message
     const whatsappNumber = "918637489726";
+    const upiLink = `upi://pay?pa=9600447624@upi&pn=TN28%20Fashions&am=${grandTotal}&cu=INR&tn=Order%20${orderId}`;
     const itemsText = cart.map(i => `• ${i.name} (${i.size}) x ${i.qty} - ₹${(i.price * i.qty).toLocaleString()}`).join('%0A');
-    const message = `🛍️ *NEW ORDER: ${orderId}*%0A` +
-      `━━━━━━━━━━━━━━━━━━%0A%0A` +
-      `📦 *ORDERED ITEMS:*%0A${itemsText}%0A%0A` +
-      `💰 *BILLING SUMMARY:*%0A` +
-      `Subtotal: ₹${total.toLocaleString()}%0A` +
-      `Shipping: ${ship === 0 ? 'FREE' : '₹' + ship}%0A` +
-      `*Grand Total: ₹${grandTotal.toLocaleString()}*%0A%0A` +
-      `💳 *PAYMENT METHOD:* UPI%0A` +
-      `Ref: Paid to 9600447624%0A%0A` +
-      `👤 *CUSTOMER DETAILS:*%0A` +
-      `Name: ${payload.customer.name}%0A` +
-      `Phone: ${payload.customer.phone}%0A%0A` +
-      `📍 *DELIVERY ADDRESS:*%0A` +
-      `${payload.address.street}, ${payload.address.city}, ${payload.address.state} - ${payload.address.pincode}%0A%0A` +
-      `━━━━━━━━━━━━━━━━━━%0A` +
-      `✅ *Please share the payment screenshot to confirm your order!*`;
-
-    const waLink = `https://wa.me/${whatsappNumber}?text=${message}`;
-
-    // 4. Trigger UPI App first
+    const message = `🛍️ *NEW ORDER: ${orderId}*%0A━━━━━━━━━━━━━━━━━━%0A%0A📦 *ORDERED ITEMS:*%0A${itemsText}%0A%0A💰 *BILLING SUMMARY:*%0ASubtotal: ₹${total.toLocaleString()}%0AShipping: ₹${ship}%0A*Grand Total: ₹${grandTotal.toLocaleString()}*%0A%0A💳 *PAYMENT METHOD:* UPI%0ARef: Paid to 9600447624%0A%0A👤 *CUSTOMER DETAILS:*%0AName: ${payload.customer.name}%0APhone: ${payload.customer.phone}%0A%0A📍 *DELIVERY ADDRESS:*%0A${payload.address.street}, ${payload.address.city}, ${payload.address.state} - ${payload.address.pincode}%0A%0A━━━━━━━━━━━━━━━━━━%0A✅ *Please share the payment screenshot to confirm your order!*`;
     window.location.href = upiLink;
-
-    // 5. Short delay, then open WhatsApp
     setTimeout(() => {
-      // Clean up cart
-      cart = [];
-      saveCart();
-      closeModal('checkout');
-      
-      // Open WhatsApp
-      window.open(waLink, '_blank');
-      
-      // Success modal
+      cart = []; saveCart(); closeModal('checkout');
+      window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
       document.getElementById('successOrderId').textContent = orderId;
       openModal('orderSuccess');
     }, 2000);
-
-  } catch (err) {
-    console.error('Order error:', err);
-    showToast('Failed to place order. Please try again.', 'error');
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fab fa-whatsapp"></i> PLACE ORDER VIA WHATSAPP';
-    }
+  } catch (err) { 
+    showToast('Order failed: ' + err.message, 'error');
+    if (btn) { btn.disabled = false; btn.innerHTML = 'PLACE ORDER VIA WHATSAPP'; }
   }
 };
 
-// Back button logic
+window.handleSearch = handleSearch;
+window.addToCart = addToCart;
+window.buyNow = buyNow;
+window.removeFromCart = removeFromCart;
+window.updateCartQty = updateCartQty;
+window.openQuickView = openQuickView;
+window.selectSize = selectSize;
+window.closeModal = closeModal;
+window.openCheckoutModal = openCheckoutModal;
+window.filterByCategory = filterByCategory;
+window.filterByBrand = filterByBrand;
+
 document.getElementById('checkoutBackBtn')?.addEventListener('click', () => {
-  const addressStep = document.getElementById('stepAddress');
   const paymentStep = document.getElementById('stepPayment');
   const summaryStep = document.getElementById('stepSummary');
-
-  if (summaryStep.classList.contains('active')) {
-    nextStep('Address');
-  } else if (paymentStep.classList.contains('active')) {
-    nextStep('Summary');
-  }
+  if (summaryStep?.classList.contains('active')) nextStep('Address');
+  else if (paymentStep?.classList.contains('active')) nextStep('Summary');
 });
 
-window.handleCheckoutFinal = handleCheckoutFinal;
-
- w i n d o w . a d d E v e n t L i s t e n e r ( ' D O M C o n t e n t L o a d e d ' ,   i n i t A p p ) ;  
- 
+window.addEventListener('DOMContentLoaded', initApp);
