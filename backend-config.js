@@ -1,18 +1,12 @@
-// TN28 Unified Cloud Backend (Supabase)
 const supabaseUrl = 'https://orzhjgrjpxrlikswwenc.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yemhqZ3JqcHhybGlrc3d3ZW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNzIwNzMsImV4cCI6MjA5MDg0ODA3M30.wRTYCtHvkDfLXQTB6rktUUUbu27e4GpzJMwzSXsloUE';
 
+// Initialize from window.supabase (loaded via CDN script in HTML)
 let supabase;
 if (typeof window !== 'undefined' && window.supabase) {
   supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 } else {
-  // If global script fails, try dynamic import as last resort
-  try {
-    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
-    supabase = createClient(supabaseUrl, supabaseKey);
-  } catch (e) {
-    console.warn('Backend connection pending...');
-  }
+  console.warn('Supabase global not found, backend will be unavailable.');
 }
 
 export { supabase };
@@ -87,12 +81,20 @@ export async function saveProduct(product) {
     // PREPARE PAYLOAD: Only include columns that actually exist in the DB
     // to avoid "column does not exist" errors.
     const dbPayload = {
-      title: product.name || 'New Product',
+      name: product.name || 'New Product',
+      brand: product.brand || 'TN28',
       price: Number(product.price) || 0,
+      originalPrice: Number(product.originalPrice) || null,
       description: product.description || '',
       category: product.category || 'casual',
       image: product.image || '',
-      stock: Number(product.stock) || 0
+      stock: Number(product.stock) || 0,
+      isNew: !!product.isNew,
+      isSale: !!product.isSale,
+      isHot: !!product.isHot,
+      fabric: product.fabric || 'Premium Cotton',
+      sizes: product.sizes || ['M', 'L', 'XL'],
+      colors: product.colors || ['#000000']
     };
 
     // Include ID only if it exists (for updates)

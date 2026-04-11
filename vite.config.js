@@ -6,7 +6,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
-        management: resolve(__dirname, 'management-portal-9600.html'),
+        admin: resolve(__dirname, 'admin.html'),
+        offers: resolve(__dirname, 'offers.html'),
       },
     },
   },

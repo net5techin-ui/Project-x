@@ -18,7 +18,7 @@ let heroSlideIndex = 0;
 let heroInterval = null;
 
 // --- INIT ---
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // 1. Initialize UI listeners IMMEDIATELY (Non-blocking)
   initEventListeners();
   loadCart();
@@ -26,14 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
   initHeroSlider();
   initParticles();
   
-  // 2. Start data loading (Async, background)
-  handleLoadProducts().then(() => {
-    renderAll();
-    initScrollAnimations();
-    initCountUp();
-  });
-
-  // 3. Misc background tasks
+  // 2. Start data loading
+  await handleLoadProducts();
+  
+  // 3. Post-load initialization
+  initScrollAnimations();
+  initCountUp();
   detectLocation();
 
   if (backend.onProductsChange) {
@@ -54,52 +52,25 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// --- LOAD APP DATA ---
-async function initApp() {
-  try {
-    const fetched = await backend.getProducts();
-    if (!fetched || fetched.length === 0) throw new Error("Empty products");
-    products = fetched;
-    renderAll();
-  } catch (err) {
-    console.error('API Error, using fallback:', err);
-    loadCart();
-    renderAll();
-  }
-}
-
-// --- LOCATION ---
-function detectLocation() {
-  const el = document.getElementById('userLocation');
-  if (!el) return;
-  const defaultLoc = 'Rasipuram, Namakkal - 637 408';
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
-          const data = await res.json();
-          const city = data.address?.city || data.address?.town || data.address?.village || 'Rasipuram';
-          const area = data.address?.suburb || data.address?.neighbourhood || '';
-          el.textContent = `${area ? area + ', ' : ''}${city}, India`;
-        } catch { el.textContent = defaultLoc; }
-      },
-      () => { el.textContent = defaultLoc; }
-    );
-  } else { el.textContent = defaultLoc; }
-}
-
 async function handleLoadProducts() {
+  console.log('🔄 Loading application data...');
   try {
     const fetched = await backend.fetchProducts();
     const isInit = localStorage.getItem('tn28_initialized');
+    
     if (fetched && fetched.length > 0) { 
       products = fetched; 
       localStorage.setItem('tn28_initialized', 'true'); 
+      console.log('✅ Products loaded from Cloud');
     } else if (!isInit) { 
       products = [...defaultProducts]; 
+      console.log('⚠️ Using Default Products (Initial Load)');
+    } else {
+      products = [...defaultProducts];
+      console.log('ℹ️ Using Default Products (Cloud Empty)');
     }
-  } catch { 
+  } catch (err) { 
+    console.error('❌ Data loading error:', err);
     products = [...defaultProducts]; 
   }
   renderAll();
@@ -108,6 +79,59 @@ async function handleLoadProducts() {
 function renderAll(filter = 'all') { 
   renderNewArrivals(); 
   renderFeatured(filter); 
+  renderOffers();
+  
+  // Extra: If on offers page, render all products to the offers grid too
+  const og = document.getElementById('offersPageGrid');
+  if (og) {
+    const f = filter === 'all' ? products : products.filter(p => p.category === filter);
+    og.innerHTML = f.map(createProductCard).join('');
+    activateReveal();
+  }
+}
+
+function renderOffers() {
+  const container = document.getElementById('dynamicOfferContainer');
+  if (!container) return;
+  
+  const offers = JSON.parse(localStorage.getItem('tn28_offers') || '[]');
+  if (offers.length === 0) {
+    container.innerHTML = `
+      <section class="section" style="padding: 100px 0; text-align: center; background: var(--bg-warm);">
+        <div class="container">
+          <div class="section-head reveal active">
+            <h2 class="section-title">Grand Opening Offers</h2>
+            <p class="section-sub">Sign up for our newsletter to receive exclusive launch offers!</p>
+          </div>
+          <div style="margin-top: 40px;">
+            <a href="index.html#featured" class="btn-dark">EXPLORE COLLECTION</a>
+          </div>
+        </div>
+      </section>
+    `;
+    return;
+  }
+  
+  container.innerHTML = offers.filter(o => o.active).map(offer => `
+    <section class="section" style="padding: 60px 0; background: ${offers.indexOf(offer) % 2 === 0 ? 'var(--bg-warm)' : 'var(--white)'}">
+      <div class="container">
+        <div class="style-banner-inner reveal active">
+          <div class="style-banner-text">
+            <span class="style-tag">${offer.discount}% OFF</span>
+            <h2>${offer.title}</h2>
+            <p>${offer.description}</p>
+            ${offer.code ? `<div style="background:rgba(255,255,255,0.1); padding:10px 20px; border-radius:8px; display:inline-block; margin-bottom:20px; font-weight:700; letter-spacing:2px; border:1px dashed var(--gold);">CODE: ${offer.code}</div><br>` : ''}
+            <a href="index.html#featured" class="btn-hero-primary">REDEEM NOW</a>
+          </div>
+          <div class="style-banner-images">
+             <div class="style-img-card" style="flex:2">
+               <img src="${offer.image || 'https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?w=800&q=80'}" style="height:400px; width:100%; object-fit:cover;">
+             </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  `).join('');
 }
 
 // --- PRODUCT CARD ---
@@ -171,6 +195,43 @@ function filterByCategory(cat) {
 function filterByBrand(brand) {
   renderFeatured(brand, 'brand');
   document.getElementById('featured')?.scrollIntoView({ behavior: 'smooth' });
+}
+
+// --- SEARCH ---
+function handleSearch(e) {
+  const query = e.target.value.toLowerCase().trim();
+  const resultsEl = document.getElementById('searchResults');
+  if (!resultsEl) return;
+  
+  if (!query) {
+    resultsEl.innerHTML = '';
+    return;
+  }
+  
+  const filtered = products.filter(p => 
+    p.name.toLowerCase().includes(query) || 
+    p.brand.toLowerCase().includes(query) || 
+    p.category.toLowerCase().includes(query)
+  );
+  
+  if (filtered.length === 0) {
+    resultsEl.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-light)">No products found for "${query}"</div>`;
+    return;
+  }
+  
+  resultsEl.innerHTML = `
+    <div style="font-size:12px;color:var(--text-light);margin-bottom:16px;">Found ${filtered.length} results</div>
+    <div class="search-results-grid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(140px,1fr));gap:16px;">
+      ${filtered.map(p => `
+        <div class="search-result-item" onclick="openQuickView('${p.id || p.fbId}')" style="cursor:pointer">
+          <img src="${p.image}" style="width:100%;height:160px;object-fit:cover;border-radius:8px;margin-bottom:8px;">
+          <div style="font-size:11px;color:var(--gold);font-weight:700;text-transform:uppercase;">${p.brand}</div>
+          <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>
+          <div style="font-size:14px;font-weight:700;">₹${p.price.toLocaleString()}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
 }
 
 // --- HERO SLIDER ---
@@ -573,5 +634,3 @@ document.getElementById('checkoutBackBtn')?.addEventListener('click', () => {
   if (summaryStep?.classList.contains('active')) nextStep('Address');
   else if (paymentStep?.classList.contains('active')) nextStep('Summary');
 });
-
-window.addEventListener('DOMContentLoaded', initApp);
