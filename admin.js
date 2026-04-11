@@ -226,7 +226,7 @@ async function handleSaveProduct(e) {
 
   const editId = document.getElementById('editId').value;
   const product = {
-    id: editId ? parseInt(editId) : Date.now(),
+    id: editId ? parseInt(editId) : undefined,
     name: document.getElementById('pName').value,
     brand: document.getElementById('pBrand').value,
     category: document.getElementById('pCategory').value,
