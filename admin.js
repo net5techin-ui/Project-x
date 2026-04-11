@@ -5,6 +5,7 @@ let products = [];
 let mediaLibrary = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
+  initAdminGate();
   await loadAndRender();
   initTabs();
   initImageUpload();
@@ -18,6 +19,33 @@ document.addEventListener('DOMContentLoaded', async () => {
   const offerForm = document.getElementById('offerForm');
   if (offerForm) offerForm.addEventListener('submit', handleSaveOffer);
 });
+
+// =================== SECURITY GATE ===================
+function initAdminGate() {
+  const gate = document.getElementById('adminGate');
+  const layout = document.getElementById('mainAdminLayout');
+  const pinInput = document.getElementById('adminPin');
+  const btnEnter = document.getElementById('btnEnterGate');
+  const errorMsg = document.getElementById('gateError');
+
+  // ACCESS CODE: 9600
+  const checkAccess = () => {
+    if (pinInput.value === '9600') {
+      gate.style.display = 'none';
+      layout.style.display = 'grid';
+      showAdminToast('Enterprise Access Granted', 'success');
+    } else {
+      errorMsg.style.display = 'block';
+      pinInput.value = '';
+      setTimeout(() => errorMsg.style.display = 'none', 3000);
+    }
+  };
+
+  btnEnter.addEventListener('click', checkAccess);
+  pinInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') checkAccess();
+  });
+}
 
 async function handleTableClick(e) {
   const btn = e.target.closest('button');

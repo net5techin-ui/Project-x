@@ -10,8 +10,21 @@
   <link rel="stylesheet" href="admin.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body>
-  <div class="admin-layout">
+  <!-- Security Gate (Hidden initially) -->
+  <div id="adminGate" class="admin-gate">
+    <div class="gate-card">
+      <div class="gate-logo">TN28</div>
+      <h2>Enterprise Portal</h2>
+      <p>Secure authentication required</p>
+      <div class="pin-input-group">
+        <input type="password" id="adminPin" placeholder="Enter Access Code" maxlength="6">
+        <button id="btnEnterGate"><i class="fas fa-chevron-right"></i></button>
+      </div>
+      <div id="gateError" class="gate-error">Invalid Authorization</div>
+    </div>
+  </div>
+
+  <div class="admin-layout" id="mainAdminLayout" style="display: none;">
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-logo">
