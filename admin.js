@@ -5,7 +5,7 @@ let products = [];
 let mediaLibrary = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Initialize UI components first (so buttons work even if data is slow)
+  // Initialize UI components first
   initTabs();
   initImageUpload();
   initMediaUpload();
@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   const productsTable = document.getElementById('productsTable');
   if (productsTable) productsTable.addEventListener('click', handleTableClick);
+
+  const btnRefresh = document.getElementById('btnRefreshData');
+  if (btnRefresh) btnRefresh.addEventListener('click', loadAndRender);
   
   // Handle Auth & Data
   const isAuth = sessionStorage.getItem('tn28_admin_auth');
@@ -22,6 +25,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('adminGate').style.display = 'none';
     document.getElementById('mainAdminLayout').style.display = 'grid';
     await loadAndRender();
+    
+    // Check for hash-based tab navigation
+    const hash = window.location.hash.replace('#', '');
+    if (hash) switchTab(hash);
   } else {
     initAdminGate();
   }
@@ -94,15 +101,15 @@ async function loadAndRender() {
     products = await backend.fetchProducts();
     console.log('📦 Data refreshed. Count:', products.length);
     mediaLibrary = JSON.parse(localStorage.getItem('tn28_media') || '[]');
-    
-    // Ensure storefront knows we have initialized the database
+    loadOrders(); // Sync orders and stats
     localStorage.setItem('tn28_initialized', 'true');
     
     renderDashboard();
     renderProductsTable();
+    renderOrders();
     renderBrands();
     renderMediaGrid();
-    loadOrders(); // Load orders alongside products
+    renderOffersList();
   } catch (err) {
     console.error('Failed to reload data:', err);
     showAdminToast('Failed to load products: ' + err.message, 'error');
@@ -128,9 +135,18 @@ function switchTab(tab) {
   const activeNavItem = document.querySelector(`.nav-item[data-tab="${tab}"]`);
   if (activeNavItem) activeNavItem.classList.add('active');
 
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  // Hide all contents
+  document.querySelectorAll('.tab-content').forEach(t => {
+    t.classList.remove('active');
+    t.style.display = 'none'; // Force hide
+  });
+
+  // Show active content
   const activeTabContent = document.getElementById(`tab-${tab}`);
-  if (activeTabContent) activeTabContent.classList.add('active');
+  if (activeTabContent) {
+    activeTabContent.classList.add('active');
+    activeTabContent.style.display = 'block'; // Force show
+  }
 
   const titles = { 
     dashboard: 'Dashboard Overview', 
@@ -394,8 +410,12 @@ window.resetForm = resetForm;
 
 function renderDashboard() {
   document.getElementById('totalProducts').textContent = products.length;
-  const revenue = products.reduce((sum, p) => sum + (p.price || 0), 0);
+  
+  // Revenue should be from orders, not products
+  const revenue = orders.reduce((sum, o) => sum + (Number(o.grandTotal || o.total) || 0), 0);
   document.getElementById('totalRevenue').textContent = `₹${revenue.toLocaleString()}`;
+  
+  document.getElementById('totalOrders').textContent = orders.length;
   document.getElementById('totalBrands').textContent = [...new Set(products.map(p => p.brand))].length;
 
   const recent = document.getElementById('recentProducts');
@@ -441,7 +461,7 @@ function renderProductsTable() {
 function renderBrands() {
   const brands = {};
   products.forEach(p => brands[p.brand] = (brands[p.brand] || 0) + 1);
-  const container = document.getElementById('brandsList2');
+  const container = document.getElementById('brandsListContainer');
   if (container) {
     container.innerHTML = Object.entries(brands).map(([name, count]) => `
       <div class="brand-item">
@@ -486,8 +506,8 @@ async function loadOrders() {
 }
 
 function renderOrders(filter = currentOrderFilter) {
-  const list = document.getElementById('ordersList');
-  const empty = document.getElementById('ordersEmpty');
+  const list = document.getElementById('ordersListContainer');
+  const empty = document.getElementById('ordersListEmpty');
   if (!list) return;
 
   const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter);
@@ -624,7 +644,8 @@ window.handleDeleteOrder = async (orderId) => {
   }
 };
 
-// =================== OFFERS MANAGEMENT ===================
+
+
 let offers = [];
 
 function loadOffers() {

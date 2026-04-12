@@ -357,6 +357,17 @@ function openQuickView(pid) {
     addToCart(pid, parseInt(document.getElementById('qvQty').value||1), size); 
     closeModal('quickView'); 
   };
+  document.getElementById('qvBuyNow').onclick = () => {
+    const size = document.querySelector('#qvSizes .size-option.active')?.textContent;
+    const qty = parseInt(document.getElementById('qvQty').value || 1);
+    const p = products.find(x => (x.id == pid || x.fbId == pid));
+    if (p) {
+        cart = [{ id: p.id, fbId: p.fbId, qty, size: size || p.sizes[0], name: p.name, price: p.price, image: p.image, brand: p.brand }];
+        saveCart();
+        closeModal('quickView');
+        openCheckoutModal();
+    }
+  };
   openModal('quickView');
 }
 
@@ -518,13 +529,8 @@ function initEventListeners() {
 
 // --- MULTI-STEP CHECKOUT LOGIC ---
 window.nextStep = (step) => {
-  document.querySelectorAll('.progress-step').forEach(s => s.classList.remove('active', 'completed'));
-  
-  if (step === 'Address') {
-    document.getElementById('progAddress').classList.add('active');
-    document.getElementById('checkoutMainTitle').textContent = '1. Select a delivery address';
-    document.getElementById('checkoutBackBtn').style.display = 'none';
-  } else if (step === 'Summary') {
+  // 1. Validation Logic
+  if (step === 'Review') {
     const name = document.getElementById('coFullName').value;
     const phone = document.getElementById('coPhone').value;
     const address = document.getElementById('coAddress').value;
@@ -533,29 +539,34 @@ window.nextStep = (step) => {
     
     if (!name || !phone || !address || !city || !pincode) {
       showToast('Please fill all required delivery fields', 'error');
-      document.getElementById('progAddress').classList.add('active');
-      return;
+      return; // Stop here
     }
+  }
+
+  // 2. UI Updates
+  document.querySelectorAll('.progress-step').forEach(s => s.classList.remove('active', 'completed'));
+  
+  if (step === 'Address') {
+    document.getElementById('progAddress').classList.add('active');
+    document.getElementById('checkoutMainTitle').textContent = '1. Delivery Address';
+    document.getElementById('checkoutBackBtn').style.display = 'none';
+  } else if (step === 'Review' || step === 'Summary') {
     document.getElementById('progAddress').classList.add('completed');
-    document.getElementById('progSummary').classList.add('active'); // progSummary is actually the Review label
-    document.getElementById('checkoutMainTitle').textContent = '2. Review your order';
-    document.getElementById('checkoutBackBtn').style.display = 'flex';
-  } else if (step === 'Review') {
-    document.getElementById('progAddress').classList.add('completed');
-    document.getElementById('progSummary').classList.add('completed');
-    document.getElementById('progPayment').classList.add('active'); // Should be step for payment
-    document.getElementById('checkoutMainTitle').textContent = '2. Review your order';
+    document.getElementById('progSummary').classList.add('active');
+    document.getElementById('checkoutMainTitle').textContent = '2. Review Items';
     document.getElementById('checkoutBackBtn').style.display = 'flex';
   } else if (step === 'Payment') {
     document.getElementById('progAddress').classList.add('completed');
     document.getElementById('progSummary').classList.add('completed');
     document.getElementById('progPayment').classList.add('active');
-    document.getElementById('checkoutMainTitle').textContent = '3. Select a payment method';
+    document.getElementById('checkoutMainTitle').textContent = '3. Payment Method';
     document.getElementById('checkoutBackBtn').style.display = 'flex';
   }
 
+  // 3. Step Visibility Toggling
   document.querySelectorAll('.checkout-step').forEach(s => s.classList.remove('active'));
-  document.getElementById(`step${step}`).classList.add('active');
+  const targetStep = document.getElementById(`step${step}`);
+  if (targetStep) targetStep.classList.add('active');
 };
 
 window.selectPayment = (method) => {
@@ -571,54 +582,128 @@ window.selectPayment = (method) => {
 };
 
 window.openCheckoutModal = () => {
-  const items = document.getElementById('checkoutOrderItems');
+  const itemsEl = document.getElementById('checkoutOrderItems');
+  const itemsFinalEl = document.getElementById('checkoutOrderItemsFinal');
+  if (!itemsEl) return;
+
+  // CRITICAL: Refresh cart from localStorage to get the latest item from buyNow/addToCart
+  const stored = localStorage.getItem('tn28_cart');
+  cart = stored ? JSON.parse(stored) : [];
+  
+  if (cart.length === 0) {
+    showToast('Your cart is empty', 'error');
+    return;
+  }
+
+  console.log('🛒 Processing Checkout für:', cart);
+
   let total = 0;
-  items.innerHTML = cart.map(i => { 
-    total += i.price * i.qty; 
-    return `<div style="display:flex;align-items:center;gap:12px;padding:10px;background:#F8FAFC;border-radius:8px;margin-bottom:8px"><img src="${i.image}" style="width:48px;height:60px;object-fit:cover;border-radius:6px"><div style="flex:1"><div style="font-weight:600;font-size:13px">${i.name}</div><div style="font-size:11px;color:#64748B">${i.brand} • Size: ${i.size} • Qty: ${i.qty}</div></div><div style="font-weight:700">₹${(i.price*i.qty).toLocaleString()}</div></div>`; 
+  const html = cart.map(i => { 
+    const price = Number(i.price || 0);
+    const qty = Number(i.qty || 1);
+    const itemTotal = price * qty;
+    total += itemTotal; 
+    return `
+      <div style="display:flex;align-items:center;gap:12px;padding:12px;background:#F8FAFC;border-radius:10px;margin-bottom:10px;border:1px solid #edf2f7;text-align:left;">
+        <img src="${i.image}" style="width:50px;height:65px;object-fit:cover;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:14px;color:#1e293b">${i.name}</div>
+          <div style="font-size:12px;color:#64748B;margin-top:2px">${i.brand || 'TN28'} • Qty: ${qty}</div>
+        </div>
+        <div style="font-weight:800;color:#0f172a">₹${itemTotal.toLocaleString()}</div>
+      </div>`; 
   }).join('');
+
+  itemsEl.innerHTML = html;
+  if (itemsFinalEl) itemsFinalEl.innerHTML = html;
+
   const ship = Math.round(total * 0.10);
-  document.getElementById('coSubtotal').textContent = `₹${total.toLocaleString()}`;
-  document.getElementById('coShipping').textContent = `₹${ship.toLocaleString()}`;
-  document.getElementById('coTotal').textContent = `₹${(total + ship).toLocaleString()}`;
+  const grand = total + ship;
+
+  // Update Review Step (2)
+  if (document.getElementById('coSubtotal')) document.getElementById('coSubtotal').textContent = `₹${total.toLocaleString()}`;
+  if (document.getElementById('coShipping')) document.getElementById('coShipping').textContent = `₹${ship.toLocaleString()}`;
+  if (document.getElementById('coTotal')) document.getElementById('coTotal').textContent = `₹${grand.toLocaleString()}`;
+  
+  // Update Final Step (4)
+  if (document.getElementById('coSubtotalFinal')) document.getElementById('coSubtotalFinal').textContent = `₹${total.toLocaleString()}`;
+  if (document.getElementById('coShippingFinal')) document.getElementById('coShippingFinal').textContent = `₹${ship.toLocaleString()}`;
+  if (document.getElementById('coTotalFinal')) document.getElementById('coTotalFinal').textContent = `₹${grand.toLocaleString()}`;
+
   nextStep('Address');
   openModal('checkout');
 };
 
 window.handleCheckoutFinal = async () => {
-  const btn = document.querySelector('.btn-checkout-next[style*="background:#000"], .btn-checkout-next[style*="background: black"]');
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> INITIALIZING...'; }
-  const orderId = 'TN28-' + Date.now().toString(36).toUpperCase();
-  const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+  const btn = document.querySelector('.btn-checkout-next[style*="background: var(--amazon-orange)"]');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PREPARING ORDER...'; }
+
+  const orderId = 'TN28-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+  const total = cart.reduce((s, i) => s + (Number(i.price) * Number(i.qty)), 0);
   const ship = Math.round(total * 0.10);
   const grandTotal = total + ship;
+  
+  const customer = {
+    name: document.getElementById('coFullName').value,
+    phone: document.getElementById('coPhone').value
+  };
+  
+  const address = { 
+    street: document.getElementById('coAddress').value, 
+    city: document.getElementById('coCity').value, 
+    state: document.getElementById('coState').value, 
+    pincode: document.getElementById('coPincode').value 
+  };
+  const fullAddress = `${address.street}, ${address.city}, ${address.state} - ${address.pincode}`;
+  const itemNames = cart.map(i => `${i.name} (${i.size}) x${i.qty}`).join('%0A');
+
   const payload = {
     orderId,
-    customer: { name: document.getElementById('coFullName').value, phone: document.getElementById('coPhone').value },
-    address: { 
-      street: document.getElementById('coAddress').value, 
-      city: document.getElementById('coCity').value, 
-      state: document.getElementById('coState').value, 
-      pincode: document.getElementById('coPincode').value 
-    },
+    customer,
+    address: { ...address, fullAddress },
     items: cart, total, shipping: ship, grandTotal, status: 'pending'
   };
+
   try {
+    // 1. Save to Supabase (Background)
     await backend.placeOrder(payload);
-    const whatsappNumber = "918637489726";
-    const upiLink = `upi://pay?pa=9600447624@upi&pn=TN28%20Fashions&am=${grandTotal}&cu=INR&tn=Order%20${orderId}`;
-    const itemsText = cart.map(i => `• ${i.name} (${i.size}) x ${i.qty} - ₹${(i.price * i.qty).toLocaleString()}`).join('%0A');
-    const message = `🛍️ *NEW ORDER: ${orderId}*%0A━━━━━━━━━━━━━━━━━━%0A%0A📦 *ORDERED ITEMS:*%0A${itemsText}%0A%0A💰 *BILLING SUMMARY:*%0ASubtotal: ₹${total.toLocaleString()}%0AShipping: ₹${ship}%0A*Grand Total: ₹${grandTotal.toLocaleString()}*%0A%0A💳 *PAYMENT METHOD:* UPI%0ARef: Paid to 9600447624%0A%0A👤 *CUSTOMER DETAILS:*%0AName: ${payload.customer.name}%0APhone: ${payload.customer.phone}%0A%0A📍 *DELIVERY ADDRESS:*%0A${payload.address.street}, ${payload.address.city}, ${payload.address.state} - ${payload.address.pincode}%0A%0A━━━━━━━━━━━━━━━━━━%0A✅ *Please share the payment screenshot to confirm your order!*`;
-    window.location.href = upiLink;
-    setTimeout(() => {
-      cart = []; saveCart(); closeModal('checkout');
-      window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
-      document.getElementById('successOrderId').textContent = orderId;
-      openModal('orderSuccess');
-    }, 2000);
+
+    // 2. Format WhatsApp Message
+    const whatsappMsg = `🛒 *NEW ORDER: ${orderId}*%0A` +
+      `━━━━━━━━━━━━━━━━━━%0A` +
+      `👤 *NAME:* ${customer.name}%0A` +
+      `📞 *PHONE:* ${customer.phone}%0A` +
+      `📍 *ADDRESS:* ${fullAddress}%0A` +
+      `🛍️ *ITEMS:*%0A${itemNames}%0A` +
+      `━━━━━━━━━━━━━━━━━━%0A` +
+      `💰 *TOTAL AMOUNT:* ₹${grandTotal.toLocaleString()}%0A` +
+      `━━━━━━━━━━━━━━━━━━%0A` +
+      `✅ *Order Pending Payment Verification*`;
+
+    // 3. Open WhatsApp link
+    const waUrl = `https://wa.me/919600447624?text=${whatsappMsg}`;
+    window.open(waUrl, '_blank');
+
+    // 4. Show Success Modal with QR Instructions
+    closeModal('checkout');
+    document.getElementById('successDetails').innerHTML = `
+      <div style="text-align:center;">
+        <p style="font-weight:700; color:#1e293b; margin-bottom:15px;">Order ID: ${orderId}</p>
+        <div style="background:#f8fafc; padding:15px; border-radius:12px; border:1px dashed #cbd5e1; margin-bottom:20px;">
+          <p style="font-size:13px; margin-bottom:10px; color:#64748b;">Please complete the payment via PhonePe QR below and send the screenshot on WhatsApp.</p>
+          <img src="assets/phonepe-qr.png" style="width:180px; height:auto; border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.05);" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=9600447624@upi%26pn=TN28%20Fashions%26am=${grandTotal}%26cu=INR'">
+          <p style="font-weight:800; margin-top:10px; color:#5f259f;">UPI ID: 9600447624@upi</p>
+        </div>
+      </div>
+    `;
+    openModal('orderSuccess');
+    
+    // Clear cart after delay
+    setTimeout(() => { cart = []; saveCart(); }, 1000);
+
   } catch (err) { 
     showToast('Order failed: ' + err.message, 'error');
-    if (btn) { btn.disabled = false; btn.innerHTML = 'PLACE ORDER VIA WHATSAPP'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = 'Place your order and pay'; }
   }
 };
 

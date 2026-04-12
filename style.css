@@ -538,6 +538,54 @@ input { font-family: inherit; }
 }
 .btn-subscribe:hover { background: var(--gold); }
 
+.qv-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn-add-cart, .btn-buy-now-qv {
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-add-cart {
+  background: #1e293b;
+  color: white;
+}
+
+.btn-add-cart:hover {
+  background: #0f172a;
+  transform: translateY(-2px);
+}
+
+.btn-buy-now-qv {
+  background: #fcd200;
+  color: #111;
+  border: 1px solid #f2c200;
+}
+
+.btn-buy-now-qv:hover {
+  background: #e6be00;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 576px) {
+  .qv-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ============ INSTAGRAM ============ */
 .insta-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
 .insta-item { aspect-ratio: 1; background-size: cover; background-position: center; position: relative; overflow: hidden; cursor: pointer; border-radius: var(--radius-sm); }
@@ -658,9 +706,12 @@ input { font-family: inherit; }
 .qty-btn:hover { background: var(--bg); }
 .qty-selector input { width: 50px; text-align: center; border: none; font-size: 15px; font-weight: 600; appearance: textfield; }
 .qty-selector input::-webkit-inner-spin-button { -webkit-appearance: none; }
-.qv-actions { margin-top: 8px; }
-.btn-add-cart { width: 100%; padding: 16px; background: var(--navy); color: var(--white); font-size: 14px; font-weight: 700; letter-spacing: 1px; border-radius: var(--radius-full); transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 10px; }
-.btn-add-cart:hover { background: var(--gold); color: var(--navy); }
+.qv-actions { display: flex; gap: 16px; margin-top: 32px; }
+.btn-add-cart, .btn-buy-now-qv { flex: 1; padding: 18px; border-radius: 12px; font-weight: 700; font-size: 14px; text-transform: uppercase; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: center; gap: 10px; border: none; }
+.btn-add-cart { background: var(--navy); color: #fff; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.2); }
+.btn-add-cart:hover { background: #1e293b; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(15, 23, 42, 0.3); }
+.btn-buy-now-qv { background: var(--gold); color: #fff; box-shadow: 0 4px 15px rgba(200, 169, 110, 0.2); }
+.btn-buy-now-qv:hover { background: #b6985e; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(200, 169, 110, 0.3); }
 
 /* Auth Modal */
 .auth-modal { width: 90%; max-width: 440px; padding: 40px; }

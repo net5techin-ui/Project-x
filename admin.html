@@ -35,6 +35,8 @@
         <a href="#" class="nav-item active" data-tab="dashboard"><i class="fas fa-chart-line"></i> Dashboard</a>
         <a href="#" class="nav-item" data-tab="products"><i class="fas fa-box"></i> Products</a>
         <a href="#" class="nav-item" data-tab="add-product"><i class="fas fa-plus-circle"></i> Add Product</a>
+        <a href="#" class="nav-item" data-tab="orders"><i class="fas fa-shopping-basket"></i> Orders</a>
+        <a href="#" class="nav-item" data-tab="media"><i class="fas fa-images"></i> Media Library</a>
         <a href="#" class="nav-item" data-tab="offers"><i class="fas fa-percent"></i> Offers</a>
       </nav>
       <div class="sidebar-footer">
@@ -45,10 +47,14 @@
     <!-- Main Content -->
     <main class="admin-main">
       <header class="admin-header">
-        <h1 id="pageTitle">Dashboard</h1>
+        <div class="header-left-group" style="display:flex;align-items:center;gap:15px">
+          <h1 id="pageTitle">Dashboard</h1>
+          <button class="btn-admin" id="btnRefreshData" style="padding:6px 12px;font-size:12px" title="Sync with Backend"><i class="fas fa-sync-alt"></i> Sync</button>
+        </div>
         <div class="admin-user">
-          <span>Admin</span>
-          <div class="admin-avatar"><i class="fas fa-user"></i></div>
+          <span id="syncStatus" style="font-size:11px;color:var(--text-muted);margin-right:15px;display:none">Synchronizing...</span>
+          <span>Administrator</span>
+          <div class="admin-avatar"><i class="fas fa-user-shield"></i></div>
         </div>
       </header>
 
@@ -62,7 +68,10 @@
 
       <!-- Dashboard Tab -->
       <div class="tab-content active" id="tab-dashboard">
-        <div class="card"><h3>Recent Products</h3><div id="recentProducts"></div></div>
+        <div class="dashboard-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+          <div class="card"><h3>Recent Products</h3><div id="recentProducts"></div></div>
+          <div class="card"><h3>Registered Brands</h3><div id="brandsListContainer"></div></div>
+        </div>
       </div>
 
       <!-- Products Tab -->
@@ -134,7 +143,45 @@
         </div>
       </div>
 
-      <!-- Offers Tab -->
+      <!-- Orders Tab -->
+      <div class="tab-content" id="tab-orders">
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-shopping-basket"></i> Customer Orders</h3>
+            <div class="order-filters">
+              <button class="btn-filter active" onclick="filterOrders('all')" data-status="all">All</button>
+              <button class="btn-filter" onclick="filterOrders('pending')" data-status="pending">Pending</button>
+              <button class="btn-filter" onclick="filterOrders('confirmed')" data-status="confirmed">Confirmed</button>
+              <button class="btn-filter" onclick="filterOrders('shipped')" data-status="shipped">Shipped</button>
+            </div>
+          </div>
+          <div id="ordersListEmpty" style="display:none; text-align:center; padding:50px; color:#64748B;">
+            <i class="fas fa-inbox" style="font-size:48px; margin-bottom:16px; opacity:0.3;"></i>
+            <p>No orders yet!</p>
+          </div>
+          <div id="ordersListContainer" class="orders-grid">
+            <!-- Order Cards will be injected here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Media Tab -->
+      <div class="tab-content" id="tab-media">
+        <div class="card">
+          <div class="card-header">
+            <h3>Digital Assets Library</h3>
+            <div class="header-actions">
+               <button class="btn-admin btn-primary-admin" id="btnUploadMedia"><i class="fas fa-cloud-upload-alt"></i> Upload New</button>
+               <input type="file" id="mediaUploadInput" multiple style="display:none">
+            </div>
+          </div>
+          <div id="mediaEmpty" style="display:none; text-align:center; padding:50px; color:#64748B;">
+            <i class="fas fa-images" style="font-size:48px; margin-bottom:16px; opacity:0.3;"></i>
+            <p>Your media library is empty.</p>
+          </div>
+          <div id="mediaGrid" class="media-grid"></div>
+        </div>
+      </div>
       <div class="tab-content" id="tab-offers">
         <div class="card">
           <div class="card-header">

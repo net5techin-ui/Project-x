@@ -8,11 +8,20 @@ let supabase;
 
 function getSupabase() {
     if (supabase) return supabase;
+    // Support both Browser (window) and Node.js environment
     if (typeof window !== 'undefined' && window.supabase && window.supabase.createClient) {
         supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-        return supabase;
+    } else {
+        // For node scripts (using the @supabase/supabase-js package)
+        try {
+            const { createClient } = require('@supabase/supabase-js');
+            supabase = createClient(supabaseUrl, supabaseKey);
+        } catch (e) {
+            // If require fails (e.g. in ESM or browser)
+            console.warn('Supabase client initialization deferred');
+        }
     }
-    return null;
+    return supabase;
 }
 
 export { supabase };
@@ -21,6 +30,7 @@ export { supabase };
 
 function mapProduct(p) {
   if (!p) return null;
+  // Map 'title' from DB to 'name' for UI
   return {
     ...p,
     id: p.id,
@@ -49,33 +59,30 @@ export async function fetchProducts() {
   }
 
   try {
-    // We use a simple select with a limit to avoid timeouts
     const { data, error } = await client
       .from('products')
-      .select('id, title, price, description, category, image, stock')
+      .select('*')
       .order('id', { ascending: false })
-      .limit(30);
+      .limit(100);
 
-    if (error) {
-        console.error('Supabase Query Error:', error);
-        throw error;
-    }
+    if (error) throw error;
     
     if (data) {
       const mapped = data.map(mapProduct);
-      const current = localStorage.getItem('tn28_products');
-      if (current !== JSON.stringify(mapped)) {
-        localStorage.setItem('tn28_products', JSON.stringify(mapped));
-        console.log('✅ Local cache updated');
+      if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('tn28_products', JSON.stringify(mapped));
       }
       return mapped;
     }
   } catch (err) {
-    console.warn('Cloud fetch failed, falling back to local storage:', err.message);
+    console.warn('Cloud fetch failed:', err.message);
   }
 
-  const local = localStorage.getItem('tn28_products');
-  return local ? JSON.parse(local) : [];
+  if (typeof localStorage !== 'undefined') {
+      const local = localStorage.getItem('tn28_products');
+      return local ? JSON.parse(local) : [];
+  }
+  return [];
 }
 
 export async function saveProduct(product) {
@@ -84,15 +91,25 @@ export async function saveProduct(product) {
 
   console.log('💾 Saving:', product.name);
   
-  // Prepare payload based on current verified columns
+  // Align payload with verified Supabase columns
   const payload = {
-    title: product.name,
+    name: product.name || product.title,
     price: Number(product.price),
     description: product.description || '',
     category: product.category || 'casual',
     image: product.image || '',
     stock: Number(product.stock) || 0
   };
+
+  // Only add columns if they are not undefined (to avoid schema errors if missing)
+  if (product.brand) payload.brand = product.brand;
+  if (product.originalPrice) payload.originalPrice = Number(product.originalPrice);
+  if (product.fabric) payload.fabric = product.fabric;
+  if (product.sizes) payload.sizes = product.sizes;
+  if (product.colors) payload.colors = product.colors;
+  if (product.isNew !== undefined) payload.isNew = !!product.isNew;
+  if (product.isSale !== undefined) payload.isSale = !!product.isSale;
+  if (product.isHot !== undefined) payload.isHot = !!product.isHot;
 
   if (product.id) payload.id = Number(product.id);
 
@@ -101,8 +118,14 @@ export async function saveProduct(product) {
     .upsert(payload)
     .select();
 
-  if (error) throw error;
-  window.dispatchEvent(new Event('storage'));
+  if (error) {
+      console.error('Supabase Save Error:', error);
+      throw error;
+  }
+  
+  if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+  }
   return mapProduct(data[0]);
 }
 
@@ -183,6 +206,31 @@ export async function deleteOrder(order) {
 }
 
 // =================== REALTIME ===================
+
+export async function uploadImage(file) {
+  const client = getSupabase();
+  if (!client) return base64Fallback(file);
+
+  try {
+    const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+    const { data, error } = await client.storage.from('products').upload(fileName, file);
+    if (error) throw error;
+    
+    const { data: { publicUrl } } = client.storage.from('products').getPublicUrl(fileName);
+    return publicUrl;
+  } catch (err) {
+    console.error('Upload error:', err);
+    return base64Fallback(file);
+  }
+}
+
+function base64Fallback(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.readAsDataURL(file);
+  });
+}
 
 export function onProductsChange(callback) {
   const client = getSupabase();

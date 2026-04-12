@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body>
 
@@ -405,6 +406,7 @@
         <div class="qv-qty"><span class="qv-label">Qty:</span><div class="qty-selector"><button class="qty-btn" id="qvQtyMinus">−</button><input type="number" value="1" min="1" max="10" id="qvQty"><button class="qty-btn" id="qvQtyPlus">+</button></div></div>
         <div class="qv-actions">
           <button class="btn-add-cart" id="qvAddToCart"><i class="fas fa-shopping-bag"></i> ADD TO CART</button>
+          <button class="btn-buy-now-qv" id="qvBuyNow"><i class="fas fa-bolt"></i> BUY NOW</button>
         </div>
       </div>
     </div>
@@ -453,7 +455,7 @@
             <div class="form-group-p"><label>CITY / TOWN / DISTRICT</label><input type="text" id="coCity" placeholder="Enter city" required></div>
             <div class="form-group-p"><label>FULL ADDRESS</label><textarea id="coAddress" placeholder="House No, Street Name, Landmark" required rows="3"></textarea></div>
           </div>
-          <button type="button" class="btn-checkout-next" style="background: var(--amazon-yellow); border: 1px solid #FCD200; color: #111; box-shadow: 0 2px 5px rgba(213,217,217,0.5);" onclick="nextStep('Summary')">Deliver to this address</button>
+          <button type="button" class="btn-checkout-next" style="background: var(--amazon-yellow); border: 1px solid #FCD200; color: #111; box-shadow: 0 2px 5px rgba(213,217,217,0.5);" onclick="nextStep('Review')">Deliver to this address</button>
         </form>
       </div>
 
@@ -512,12 +514,12 @@
       <div class="checkout-step" id="stepSummary">
         <div class="order-preview-card" style="background: #fff; border: 1px solid var(--border);">
           <div style="font-size: 14px; font-weight: 700; margin-bottom: 12px; padding: 0 0 8px; border-bottom: 1px solid var(--bg);">Review your order</div>
-          <div id="checkoutOrderItems"></div>
+          <div id="checkoutOrderItemsFinal"></div>
           <div class="co-totals-p">
-             <div class="co-row-p"><span>Items:</span><span id="coSubtotal">₹0</span></div>
-             <div class="co-row-p"><span>Shipping & handling:</span><span id="coShipping">₹0</span></div>
+             <div class="co-row-p"><span>Items:</span><span id="coSubtotalFinal">₹0</span></div>
+             <div class="co-row-p"><span>Shipping & handling:</span><span id="coShippingFinal">₹0</span></div>
              <div class="co-row-p" style="padding-top: 10px; border-top: 1px solid var(--bg); font-size: 16px; font-weight: 700; color: #B12704;">
-               <span>Order Total:</span><span id="coTotal">₹0</span>
+               <span>Order Total:</span><span id="coTotalFinal">₹0</span>
              </div>
           </div>
         </div>
@@ -529,7 +531,7 @@
         <button type="button" class="btn-checkout-next" style="background: var(--amazon-orange); border: 1px solid #F08804; color: #fff;" onclick="handleCheckoutFinal()">
           Place your order and pay
         </button>
-        <p class="final-note">Order details will be sent to sngagan54@gmail.com and WhatsApp.</p>
+        <p class="final-note">Order details will be sent to WhatsApp: 96004 47624</p>
       </div>
     </div>
   </div>
