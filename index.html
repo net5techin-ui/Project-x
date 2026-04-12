@@ -367,7 +367,7 @@
         <div class="footer-links">
           <a href="#home">Privacy Policy</a>
           <a href="#home">Terms of Service</a>
-          <a href="admin.html" style="opacity: 0.1">Admin Access</a>
+          <a href="admin.html" class="admin-link-footer"><i class="fas fa-user-shield"></i> Admin Panel</a>
         </div>
         <div class="payment-icons">
           <i class="fab fa-cc-visa"></i><i class="fab fa-cc-mastercard"></i><i class="fab fa-cc-paypal"></i><i class="fab fa-google-pay"></i><i class="fab fa-apple-pay"></i>
@@ -458,7 +458,7 @@
       </div>
 
       <!-- STEP 2: REVIEW -->
-      <div class="checkout-step" id="stepSummary">
+      <div class="checkout-step" id="stepReview">
         <div class="order-preview-card" style="background: #fff; border: 1px solid var(--border);">
           <div style="font-size: 14px; font-weight: 700; margin-bottom: 12px; padding: 0 0 8px; border-bottom: 1px solid var(--bg);">Review your items and shipping</div>
           <div id="checkoutOrderItems"></div>
@@ -505,10 +505,10 @@
           <img id="qrImageElement" src="assets/phonepe-qr.png" style="width:180px; height:auto; margin:0 auto; display:block;">
           <p style="font-size:11px; margin-top:8px; color:var(--text-muted);">Sakthivel: 9600447624</p>
         </div>
-        <button type="button" class="btn-checkout-next" style="background: var(--amazon-yellow); border: 1px solid #FCD200; color: #111;" onclick="nextStep('Summary')">Continue</button>
+        <button type="button" class="btn-checkout-next" style="background: var(--amazon-yellow); border: 1px solid #FCD200; color: #111;" onclick="nextStep('Review')">Continue</button>
       </div>
 
-      <!-- STEP 3: SUMMARY -->
+      <!-- STEP 4: FINAL SUMMARY (Redundant but kept for structure) -->
       <div class="checkout-step" id="stepSummary">
         <div class="order-preview-card" style="background: #fff; border: 1px solid var(--border);">
           <div style="font-size: 14px; font-weight: 700; margin-bottom: 12px; padding: 0 0 8px; border-bottom: 1px solid var(--bg);">Review your order</div>

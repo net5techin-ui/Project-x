@@ -5,19 +5,44 @@ let products = [];
 let mediaLibrary = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-  initAdminGate();
-  await loadAndRender();
+  // Initialize UI components first (so buttons work even if data is slow)
   initTabs();
   initImageUpload();
-  document.getElementById('productForm').addEventListener('submit', handleSaveProduct);
+  initMediaUpload();
   
-  // Set up event delegation for product actions
-  document.getElementById('productsTable').addEventListener('click', handleTableClick);
+  const productForm = document.getElementById('productForm');
+  if (productForm) productForm.addEventListener('submit', handleSaveProduct);
   
-  // Offers
+  const productsTable = document.getElementById('productsTable');
+  if (productsTable) productsTable.addEventListener('click', handleTableClick);
+  
+  // Handle Auth & Data
+  const isAuth = sessionStorage.getItem('tn28_admin_auth');
+  if (isAuth === 'true') {
+    document.getElementById('adminGate').style.display = 'none';
+    document.getElementById('mainAdminLayout').style.display = 'grid';
+    await loadAndRender();
+  } else {
+    initAdminGate();
+  }
+  
+  // Offers & Orders
   loadOffers();
+  loadOrders();
   const offerForm = document.getElementById('offerForm');
   if (offerForm) offerForm.addEventListener('submit', handleSaveOffer);
+
+  // Real-time synchronization
+  if (backend.onProductsChange) {
+      backend.onProductsChange((updated) => {
+          if (updated) {
+              products = updated;
+              renderDashboard();
+              renderProductsTable();
+              renderBrands();
+          }
+      });
+  }
 });
 
 // =================== SECURITY GATE ===================
@@ -28,12 +53,13 @@ function initAdminGate() {
   const btnEnter = document.getElementById('btnEnterGate');
   const errorMsg = document.getElementById('gateError');
 
-  // ACCESS CODE: 9600
-  const checkAccess = () => {
+  const checkAccess = async () => {
     if (pinInput.value === '9600') {
+      sessionStorage.setItem('tn28_admin_auth', 'true');
       gate.style.display = 'none';
       layout.style.display = 'grid';
       showAdminToast('Enterprise Access Granted', 'success');
+      await loadAndRender();
     } else {
       errorMsg.style.display = 'block';
       pinInput.value = '';
@@ -63,17 +89,24 @@ async function handleTableClick(e) {
 
 // =================== DATA ===================
 async function loadAndRender() {
-  showAdminToast('Loading products...', 'info');
-  products = await backend.fetchProducts();
-  mediaLibrary = JSON.parse(localStorage.getItem('tn28_media') || '[]');
-  
-  // Ensure storefront knows we have initialized the database
-  localStorage.setItem('tn28_initialized', 'true');
-  
-  renderDashboard();
-  renderProductsTable();
-  renderBrands();
-  renderMediaGrid();
+  showAdminToast('Refreshing data...', 'info');
+  try {
+    products = await backend.fetchProducts();
+    console.log('📦 Data refreshed. Count:', products.length);
+    mediaLibrary = JSON.parse(localStorage.getItem('tn28_media') || '[]');
+    
+    // Ensure storefront knows we have initialized the database
+    localStorage.setItem('tn28_initialized', 'true');
+    
+    renderDashboard();
+    renderProductsTable();
+    renderBrands();
+    renderMediaGrid();
+    loadOrders(); // Load orders alongside products
+  } catch (err) {
+    console.error('Failed to reload data:', err);
+    showAdminToast('Failed to load products: ' + err.message, 'error');
+  }
 }
 
 function saveLocalMedia() {
@@ -279,14 +312,21 @@ async function handleSaveProduct(e) {
     if (existing) product.id = existing.id;
   }
 
-  showAdminToast('Synchronizing with backend...', 'info');
+  const syncToast = showAdminToast('Synchronizing with backend...', 'info', true);
   try {
-    await backend.saveProduct(product);
+    const savedProduct = await backend.saveProduct(product);
+    console.log('✅ Product saved:', savedProduct);
+    
+    // Immediate local update to UI
     await loadAndRender();
     resetForm();
-    showAdminToast(editId ? 'Entity updated in cloud!' : 'Entity published to cloud!', 'success');
+    
+    if (syncToast) syncToast.remove();
+    showAdminToast(editId ? 'Product details updated successfully!' : 'Product successfully added to your store!', 'success');
     switchTab('products');
   } catch (err) {
+    console.error('Cloud Sync Failed:', err);
+    if (syncToast) syncToast.remove();
     showAdminToast('Cloud sync failed: ' + err.message, 'error');
   }
 }
@@ -334,7 +374,7 @@ window.deleteProduct = async (id) => {
     console.log('Calling backend.deleteProduct for:', p);
     await backend.deleteProduct(p);
     await loadAndRender();
-    showAdminToast('Entity deleted from backend', 'success');
+    showAdminToast('Product successfully removed from your store', 'success');
   } catch (err) {
     console.error('Deletion failed:', err);
     showAdminToast('Cloud deletion failed: ' + err.message, 'error');
@@ -412,16 +452,20 @@ function renderBrands() {
   }
 }
 
-function showAdminToast(msg, type = '') {
+function showAdminToast(msg, type = '', sticky = false) {
   const container = document.getElementById('adminToast');
   const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
+  toast.className = `toast ${type} ${sticky ? 'sticky' : ''}`;
   toast.textContent = msg;
   container.appendChild(toast);
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    setTimeout(() => toast.remove(), 500);
-  }, 4000);
+  
+  if (!sticky) {
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => toast.remove(), 500);
+    }, 4000);
+  }
+  return toast;
 }
 
 // =================== ORDERS MANAGEMENT ===================

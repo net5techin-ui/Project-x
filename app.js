@@ -537,7 +537,13 @@ window.nextStep = (step) => {
       return;
     }
     document.getElementById('progAddress').classList.add('completed');
-    document.getElementById('progSummary').classList.add('active');
+    document.getElementById('progSummary').classList.add('active'); // progSummary is actually the Review label
+    document.getElementById('checkoutMainTitle').textContent = '2. Review your order';
+    document.getElementById('checkoutBackBtn').style.display = 'flex';
+  } else if (step === 'Review') {
+    document.getElementById('progAddress').classList.add('completed');
+    document.getElementById('progSummary').classList.add('completed');
+    document.getElementById('progPayment').classList.add('active'); // Should be step for payment
     document.getElementById('checkoutMainTitle').textContent = '2. Review your order';
     document.getElementById('checkoutBackBtn').style.display = 'flex';
   } else if (step === 'Payment') {

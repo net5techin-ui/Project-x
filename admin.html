@@ -38,7 +38,7 @@
         <a href="#" class="nav-item" data-tab="offers"><i class="fas fa-percent"></i> Offers</a>
       </nav>
       <div class="sidebar-footer">
-        <a href="index.html"><i class="fas fa-store"></i> View Store</a>
+        <a href="index.html" class="view-store-link"><i class="fas fa-store"></i> View Store</a>
       </div>
     </aside>
 
@@ -52,14 +52,16 @@
         </div>
       </header>
 
+      <!-- Global Stats Summary -->
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-icon" style="background:#e8f4fd;color:#2196F3"><i class="fas fa-box"></i></div><div><h3 id="totalProducts">0</h3><p>Total Products</p></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#e8f5e9;color:#4CAF50"><i class="fas fa-shopping-cart"></i></div><div><h3 id="totalOrders">0</h3><p>Total Orders</p></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#fff3e0;color:#FF9800"><i class="fas fa-rupee-sign"></i></div><div><h3 id="totalRevenue">₹0</h3><p>Revenue</p></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#fce4ec;color:#E91E63"><i class="fas fa-tags"></i></div><div><h3 id="totalBrands">0</h3><p>Brands</p></div></div>
+      </div>
+
       <!-- Dashboard Tab -->
       <div class="tab-content active" id="tab-dashboard">
-        <div class="stats-grid">
-          <div class="stat-card"><div class="stat-icon" style="background:#e8f4fd;color:#2196F3"><i class="fas fa-box"></i></div><div><h3 id="totalProducts">0</h3><p>Total Products</p></div></div>
-          <div class="stat-card"><div class="stat-icon" style="background:#e8f5e9;color:#4CAF50"><i class="fas fa-shopping-cart"></i></div><div><h3 id="totalOrders">0</h3><p>Total Orders</p></div></div>
-          <div class="stat-card"><div class="stat-icon" style="background:#fff3e0;color:#FF9800"><i class="fas fa-rupee-sign"></i></div><div><h3 id="totalRevenue">₹0</h3><p>Revenue</p></div></div>
-          <div class="stat-card"><div class="stat-icon" style="background:#fce4ec;color:#E91E63"><i class="fas fa-tags"></i></div><div><h3 id="totalBrands">0</h3><p>Brands</p></div></div>
-        </div>
         <div class="card"><h3>Recent Products</h3><div id="recentProducts"></div></div>
       </div>
 
