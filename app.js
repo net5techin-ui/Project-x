@@ -192,6 +192,13 @@
     };
     var cc = document.getElementById('closeCart'); if(cc) cc.addEventListener('click', closeCart);
     var co = document.getElementById('cartOverlay'); if(co) co.addEventListener('click', closeCart);
+
+    var closeQV = function() {
+      window.closeModal('quickView');
+    };
+    var cqv = document.getElementById('closeQuickView'); if(cqv) cqv.addEventListener('click', closeQV);
+    var qvo = document.getElementById('quickViewOverlay'); if(qvo) qvo.addEventListener('click', closeQV);
+
     var cbt = document.getElementById('checkoutBtn'); if(cbt) cbt.addEventListener('click', openCheckoutModal);
 
     // Filter Bar Listeners
