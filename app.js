@@ -603,12 +603,12 @@
   };
 
   window.filterByBrand = function(b) {
-    window.renderFeatured(b, 'brand');
+    renderFeatured(b, 'brand');
     window.location.hash = 'featured';
   };
 
   window.filterByCategory = function(c) {
-    window.renderFeatured(c, 'category');
+    renderFeatured(c, 'category');
     window.location.hash = 'featured';
   };
 
