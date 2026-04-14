@@ -4,7 +4,7 @@
   var defaultProducts = [];
 
   // --- STATE (Old-Style Array Cloning) ---
-  console.log('🚀 TN28 Storefront Engine v5.1 Power-Active');
+  console.log('🚀 TN28 Storefront Engine v5.2 (Deep-Fix) Active');
   window.products = defaultProducts.slice();
   window.cart = [];
   var currentQuickViewId = null; 
@@ -13,6 +13,13 @@
   var heroSlideIndex = 0;
   var heroInterval = null;
   var selectedPaymentMethod = 'phonepe';
+  
+  // Global Error Logger for diagnostics
+  window.onerror = function(msg, url, line) {
+    console.error('Captured Error:', msg, 'at', line);
+    if (window.showToast) window.showToast('App Error: ' + msg.split(':')[0], 'error');
+    return false;
+  };
 
   // --- CORE RENDER FUNCTIONS ---
   window.renderAll = function(filter) {
@@ -131,6 +138,12 @@
     
     window.renderAll('all');
     window.handleLoadProducts(true);
+    
+    // Explicitly check for backend
+    if (!window.backend) {
+      console.warn('Backend controller not found - checking retry...');
+      setTimeout(function() { if(!window.backend) window.showToast('Backend connection pending...', 'info'); }, 2000);
+    }
 
     // Periodic Background Sync (Safe for Mobile)
     setInterval(function() { 
@@ -351,8 +364,8 @@
           return '<div class="size-option" onclick="selectSize(\''+s+'\', this)">' + s + '</div>';
         }).join('');
       } else {
-        sizeContainer.innerHTML = '<div class="size-none" style="font-size:12px;color:#ef4444;font-weight:600;">Standard / Free Size</div>';
-        selectedSize = 'Standard / Free Size';
+        sizeContainer.innerHTML = '<div class="size-selected-msg" style="font-size:13px;color:#ef4444;font-weight:700;padding:5px;border:1px solid #ef4444;border-radius:4px;display:inline-block;">Standard Size (Free Size)</div>';
+        selectedSize = 'Standard';
       }
     }
 
