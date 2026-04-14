@@ -196,7 +196,6 @@
   </style>
 </head>
 <body>
-
   <header class="checkout-header">
     <div class="logo">TN28<span>.</span>STORE</div>
   </header>
@@ -255,14 +254,62 @@
       <!-- Step 3: Payment Info -->
       <section class="checkout-section">
         <h2 class="section-title"><span>3</span> Payment Method</h2>
-        <div style="background: #fcf5ee; border: 1px solid #fbd8b4; padding: 15px; border-radius: 4px; font-size: 14px;">
-          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-            <input type="radio" name="payment" checked>
-            <strong>Razorpay Secure Payment</strong>
-            <img src="https://razorpay.com/favicon.png" width="16" alt="">
-          </label>
-          <p style="margin: 10px 0 0 25px; color: var(--text-muted);">After clicking "Place Order", you will be redirected to the secure payment page to complete your purchase.</p>
+        <h2 style="text-align: center; font-weight: bold; margin: 15px 0 25px;">the qr is only avabile</h2>
+        <div id="payment-methods" style="display: flex; flex-direction: column; gap: 12px;">
+          <!-- Razorpay -->
+          <div class="payment-method-card" style="border: 2px solid #FF9900; background: #fffaf5; padding: 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; width: 100%;">
+              <input type="radio" name="payment" value="razorpay" checked style="accent-color: #FF9900; width: 18px; height: 18px;">
+              <div style="flex: 1;">
+                <div style="font-weight: 700; font-size: 15px;">Razorpay Secure Payment</div>
+                <div style="font-size: 12px; color: #666; margin-top: 2px;">Cards, Netbanking, Wallets</div>
+              </div>
+              <img src="https://razorpay.com/favicon.png" width="20" height="20" alt="Razorpay">
+            </label>
+          </div>
+
+          <!-- PhonePe -->
+          <div class="payment-method-card" style="border: 1px solid #ddd; background: #fff; padding: 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; width: 100%;">
+              <input type="radio" name="payment" value="phonepe" style="accent-color: #FF9900; width: 18px; height: 18px;">
+              <div style="flex: 1;">
+                <div style="font-weight: 700; font-size: 15px;">PhonePe / Wallet</div>
+                <div style="font-size: 12px; color: #666; margin-top: 2px;">Direct Pay to 96004 47624</div>
+              </div>
+              <img src="https://img.icons8.com/color/48/phone-pe.png" width="24" height="24" alt="PhonePe">
+            </label>
+          </div>
+
+          <!-- GPay / UPI -->
+          <div class="payment-method-card" style="border: 1px solid #ddd; background: #fff; padding: 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; width: 100%;">
+              <input type="radio" name="payment" value="upi" style="accent-color: #FF9900; width: 18px; height: 18px;">
+              <div style="flex: 1;">
+                <div style="font-weight: 700; font-size: 15px;">GPay / Other UPI</div>
+                <div style="font-size: 12px; color: #666; margin-top: 2px;">Any UPI app (Paytm, GPay, etc.)</div>
+              </div>
+              <img src="https://www.vectorlogo.zone/logos/upi/upi-icon.svg" width="24" height="24" alt="UPI">
+            </label>
+          </div>
         </div>
+        
+        <script>
+          // Quick UI logic for payment selection feedback
+          document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.payment-method-card');
+            cards.forEach(card => {
+              card.addEventListener('click', () => {
+                cards.forEach(c => {
+                  c.style.border = '1px solid #ddd';
+                  c.style.background = '#fff';
+                });
+                card.style.border = '2px solid #FF9900';
+                card.style.background = '#fffaf5';
+                card.querySelector('input').checked = true;
+              });
+            });
+          });
+        </script>
       </section>
     </div>
 

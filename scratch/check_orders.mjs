@@ -6,9 +6,12 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function checkOrders() {
-  const { data, error } = await supabase.from('orders').select('id');
+  const { data, error } = await supabase.from('orders').select('*').limit(1);
   if (error) console.error(error);
-  else console.log('Total Orders in Cloud:', data.length);
+  else {
+    console.log('Last Order Data:', JSON.stringify(data[0], null, 2));
+    console.log('Columns:', Object.keys(data[0] || {}));
+  }
 }
 
 checkOrders();

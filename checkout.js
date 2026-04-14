@@ -78,25 +78,62 @@ async function handleCheckout() {
 
         await backend.placeOrder(orderData);
 
-        // B. Initial WhatsApp Message (Order Received)
-        const waPrice = grandTotal;
-        const msg = `🛒 New Order Received!
+        // B. Route based on Payment Method
+        const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+        
+        if (paymentMethod === 'razorpay') {
+            // Initial WhatsApp Notification for Razorpay
+            const initialMsg = `🛒 New Order Received (Online Payment)!
 👤 Name: ${name}
 📞 Phone: ${phone}
-📍 Address: ${fullAddress}
+💰 Total: ₹${grandTotal}
 🛍 Items: ${itemNames}
-💰 Total: ₹${waPrice}`;
 
-        // Send first message (this opens a tab, but we'll focus on payment)
-        sendWhatsAppMessage(msg);
-
-        // C. Payment Integration (Razorpay)
-        initiatePayment(orderData);
+Waiting for payment completion...`;
+            sendWhatsAppMessage(initialMsg);
+            initiatePayment(orderData);
+        } else {
+            // Handle PhonePe / UPI
+            initiateUPIPayment(orderData, paymentMethod);
+        }
 
     } catch (err) {
         console.error('Checkout error:', err);
         showStatus('error', 'Order Failed', 'Something went wrong. Please try again.');
     }
+}
+
+function initiateUPIPayment(order, method) {
+    const vpa = "9600447624@ybl"; // PhonePe / Universal UPI VPA
+    const note = `TN28 Order ${order.orderId}`;
+    const upiUrl = `upi://pay?pa=${vpa}&pn=TN28%20STORE&am=${order.grandTotal}&cu=INR&tn=${encodeURIComponent(note)}`;
+    
+    showStatus('success', 'Order Submitted!', 'Opening payment app... please complete the payment and share the screenshot on WhatsApp.');
+    
+    const itemNames = order.items.map(i => `${i.name} (x${i.qty})`).join(', ');
+    const whatsappMsg = `🛒 *New Order* (${method.toUpperCase()})
+━━━━━━━━━━━━━━━━━━
+🆔 Order ID: ${order.orderId}
+👤 Name: ${order.customer.name}
+📞 Contact: ${order.customer.phone}
+📍 Address: ${order.address.fullAddress}
+━━━━━━━━━━━━━━━━━━
+🛍 Items: ${itemNames}
+💰 *Total Amount: ₹${order.grandTotal}*
+━━━━━━━━━━━━━━━━━━
+✅ I have initiated the payment. Please confirm!`;
+
+    // Attempt to launch UPI app
+    window.location.href = upiUrl;
+
+    // After 2 seconds, open WhatsApp with order details
+    setTimeout(() => {
+        sendWhatsAppMessage(whatsappMsg);
+        
+        // Clear cart as order is submitted
+        localStorage.removeItem('tn28_cart');
+        document.getElementById('btnCloseStatus').style.display = 'block';
+    }, 2000);
 }
 
 function initiatePayment(order) {

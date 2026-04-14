@@ -3,12 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>TN28 Admin Panel - Product Management</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="admin.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // Force a fresh state for Admin
+    localStorage.removeItem('tn28_products');
+    sessionStorage.removeItem('tn28_admin_auth'); // Optional: force re-login if needed
+    console.log('🛡️ Admin Sync Reinforced');
+  </script>
 </head>
   <!-- Security Gate (Hidden initially) -->
   <div id="adminGate" class="admin-gate">
@@ -219,6 +228,7 @@
 
   <!-- Toast -->
   <div class="toast-container" id="adminToast"></div>
-  <script type="module" src="admin.js"></script>
+  <script type="module" src="backend-config.js?v=3.0"></script>
+  <script type="module" src="admin.js?v=3.0"></script>
 </body>
 </html>
