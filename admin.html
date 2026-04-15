@@ -13,6 +13,10 @@
   <link rel="stylesheet" href="admin.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    // Aggressive Cache Buster for Admin
+    if (!location.search.includes('v=7.0')) {
+      location.replace(location.pathname + '?v=7.0' + location.hash);
+    }
     // Force a fresh state for Admin
     localStorage.removeItem('tn28_products');
     sessionStorage.removeItem('tn28_admin_auth'); // Optional: force re-login if needed
@@ -228,7 +232,7 @@
 
   <!-- Toast -->
   <div class="toast-container" id="adminToast"></div>
-  <script src="backend-config.js?v=6.0"></script>
-  <script src="admin-v6.js?v=6.0"></script>
+  <script src="backend-config.js?v=7.0"></script>
+  <script src="admin-v7.js?v=7.0"></script>
 </body>
 </html>
