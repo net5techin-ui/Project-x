@@ -4,7 +4,7 @@
   var defaultProducts = [];
 
   // --- STATE (Old-Style Array Cloning) ---
-  console.log('🚀 TN28 Storefront Engine v5.2 (Deep-Fix) Active');
+  console.log('🚀 TN28 Storefront Engine v7.0 (Deep-Logic) Active');
   window.products = defaultProducts.slice();
   window.cart = [];
   var currentQuickViewId = null; 
@@ -21,13 +21,13 @@
     return false;
   };
 
-  // --- CORE RENDER FUNCTIONS ---
+  // --- CORE RENDER FUNCTIONS (Exposed Globally) ---
   window.renderAll = function(filter) {
     var f = filter || 'all';
     try {
-      renderNewArrivals(); 
-      renderFeatured(f); 
-      renderOffers();
+      if (window.renderNewArrivals) window.renderNewArrivals(); 
+      if (window.renderFeatured) window.renderFeatured(f); 
+      if (window.renderOffers) window.renderOffers();
       
       var og = document.getElementById('offersPageGrid');
       if (og) {
@@ -40,69 +40,75 @@
                 if(pCat === f.toLowerCase()) filteredList.push(window.products[i]);
             }
         }
-        og.innerHTML = filteredList.map(createProductCard).join('');
+        og.innerHTML = filteredList.map(window.createProductCard).join('');
       }
     } catch (e) { console.warn('Render issue:', e); }
   };
 
-  function renderNewArrivals() { 
+  window.renderNewArrivals = function() { 
     var g = document.getElementById('newArrivalsGrid'); 
     if (!g) return; 
-    var news = [];
-    // Show up to 20 latest products in New Arrivals
-    var displayList = window.products.slice(0, 20);
-    g.innerHTML = displayList.map(createProductCard).join(''); 
-  }
+    try {
+      var news = [];
+      // Show up to 20 latest products in New Arrivals
+      var displayList = window.products.slice(0, 20);
+      g.innerHTML = displayList.map(window.createProductCard).join(''); 
+    } catch(e) { console.error('Arrivals failed', e); }
+  };
 
-  function renderFeatured(filter, type) {
+  window.renderFeatured = function(filter, type) {
     var g = document.getElementById('featuredGrid'); 
     if (!g) return;
-    var t = type || 'category';
-    
-    var f = [];
-    if (filter === 'all') {
-        f = window.products;
-    } else {
-        for(var i=0; i<window.products.length; i++) {
-            var val = (window.products[i][t] || '').toString().toLowerCase();
-            if(val === filter.toLowerCase()) f.push(window.products[i]);
-        }
-    }
-    
-    if (f.length === 0) {
-      g.innerHTML = '<div class="no-products-msg" style="padding:40px;text-align:center;grid-column:1/-1;color:#666;">No products found in this category.</div>';
-      return;
-    }
+    try {
+      var t = type || 'category';
+      
+      var f = [];
+      if (filter === 'all') {
+          f = window.products;
+      } else {
+          for(var i=0; i<window.products.length; i++) {
+              var val = (window.products[i][t] || '').toString().toLowerCase();
+              if(val === filter.toLowerCase()) f.push(window.products[i]);
+          }
+      }
+      
+      if (f.length === 0) {
+        g.innerHTML = '<div class="no-products-msg" style="padding:40px;text-align:center;grid-column:1/-1;color:#666;">No products found in this category.</div>';
+        return;
+      }
 
-    g.innerHTML = f.slice(0, 48).map(createProductCard).join(''); 
-    var cards = document.querySelectorAll('.product-card');
-    for (var j = 0; j < cards.length; j++) cards[j].classList.add('active');
-  }
+      g.innerHTML = f.slice(0, 48).map(window.createProductCard).join(''); 
+      var cards = document.querySelectorAll('.product-card');
+      for (var j = 0; j < cards.length; j++) cards[j].classList.add('active');
+    } catch(e) { console.error('Featured failed', e); }
+  };
 
-  function createProductCard(product) {
-    var price = Number(product.price) || 0;
-    var originalPrice = Number(product.originalPrice) || 0;
-    var discount = (originalPrice > price) ? Math.round((1 - price / originalPrice) * 100) : 0;
-    var pid = product.id || product.fbId || 'p' + Math.random();
-    var name = product.name || 'Premium Item';
-    var image = product.image || 'https://via.placeholder.com/400x500?text=TN28+Fashion';
-    
-    var html = '<div class="product-card active" data-id="'+pid+'">';
-    html += '<div class="product-image" data-action="quickview">';
-    html += '<img src="'+image+'" alt="'+name+'" onerror="this.src=\'https://via.placeholder.com/400x500?text=Image+Loading...\'">';
-    html += '<div class="product-badges">';
-    if(product.isNew) html += '<span class="product-badge new">NEW</span>';
-    if(product.isSale && discount > 0) html += '<span class="product-badge sale">'+discount+'% OFF</span>';
-    html += '</div></div>';
-    html += '<div class="product-info"><div class="product-brand">'+(product.brand || 'TN28')+'</div>';
-    html += '<h3 class="product-name" data-action="quickview">'+name+'</h3>';
-    html += '<div class="product-price">₹'+price.toLocaleString()+'</div></div>';
-    html += '<div class="product-card-footer">';
-    html += '<button class="product-add-cart" data-id="'+pid+'">Cart</button>';
-    html += '<button class="product-buy-now" data-id="'+pid+'">Buy Now</button>';
-    html += '</div></div>';
-    return html;
-  }
+  window.createProductCard = function(product) {
+    try {
+      var price = Number(product.price) || 0;
+      var originalPrice = Number(product.originalPrice) || 0;
+      var discount = (originalPrice > price) ? Math.round((1 - price / originalPrice) * 100) : 0;
+      var pid = product.id || product.fbId || 'p' + Math.random();
+      var name = product.name || 'Premium Item';
+      var image = product.image || 'https://via.placeholder.com/400x500?text=TN28+Fashion';
+      
+      var html = '<div class="product-card active" data-id="'+pid+'">';
+      html += '<div class="product-image" data-action="quickview">';
+      html += '<img src="'+image+'" alt="'+name+'" onerror="this.src=\'https://via.placeholder.com/400x500?text=Image+Loading...\'">';
+      html += '<div class="product-badges">';
+      if(product.isNew) html += '<span class="product-badge new">NEW</span>';
+      if(product.isSale && discount > 0) html += '<span class="product-badge sale">'+discount+'% OFF</span>';
+      html += '</div></div>';
+      html += '<div class="product-info"><div class="product-brand">'+(product.brand || 'TN28')+'</div>';
+      html += '<h3 class="product-name" data-action="quickview">'+name+'</h3>';
+      html += '<div class="product-price">₹'+price.toLocaleString()+'</div></div>';
+      html += '<div class="product-card-footer">';
+      html += '<button class="product-add-cart" data-id="'+pid+'">Cart</button>';
+      html += '<button class="product-buy-now" data-id="'+pid+'">Buy Now</button>';
+      html += '</div></div>';
+      return html;
+    } catch(e) { return ''; }
+  };
 
   // --- DATA LOADING ---
   window.handleLoadProducts = function(force) {
@@ -130,11 +136,11 @@
     // CLEANUP: Clear any legacy cached products to ensure device sync
     localStorage.removeItem('tn28_products');
     
-    if (initEventListeners) initEventListeners();
-    if (loadCart) loadCart();
-    if (updateCartBadge) updateCartBadge();
-    if (initHeroSlider) initHeroSlider();
-    if (detectLocation) detectLocation();
+    if (window.initEventListeners) window.initEventListeners();
+    if (window.loadCart) window.loadCart();
+    if (window.updateCartBadge) window.updateCartBadge();
+    if (window.initHeroSlider) window.initHeroSlider();
+    if (window.detectLocation) window.detectLocation();
     
     window.renderAll('all');
     window.handleLoadProducts(true);
@@ -162,7 +168,7 @@
     } catch(e) {}
   };
 
-  function initEventListeners() {
+  window.initEventListeners = function() {
     window.addEventListener('scroll', function() {
       var h = document.getElementById('header'); if (h) h.classList.toggle('scrolled', window.scrollY > 50);
     });
@@ -181,7 +187,7 @@
     var mo = document.getElementById('mobileMenuOverlay'); if(mo) mo.addEventListener('click', closeMob);
 
     var cb = document.getElementById('cartBtn'); if(cb) cb.addEventListener('click', function() {
-      renderCart();
+      window.renderCart();
       document.getElementById('cartSidebar').classList.add('active');
       document.getElementById('cartOverlay').classList.add('active');
     });
@@ -199,7 +205,7 @@
     var cqv = document.getElementById('closeQuickView'); if(cqv) cqv.addEventListener('click', closeQV);
     var qvo = document.getElementById('quickViewOverlay'); if(qvo) qvo.addEventListener('click', closeQV);
 
-    var cbt = document.getElementById('checkoutBtn'); if(cbt) cbt.addEventListener('click', openCheckoutModal);
+    var cbt = document.getElementById('checkoutBtn'); if(cbt) cbt.addEventListener('click', window.openCheckoutModal);
 
     // Filter Bar Listeners
     var fBtns = document.querySelectorAll('.filter-btn');
@@ -269,14 +275,14 @@
         window.openQuickView(pid);
       }
     });
-  }
+  };
 
-  function loadCart() { 
+  window.loadCart = function() { 
     var saved = localStorage.getItem('tn28_cart');
     window.cart = saved ? JSON.parse(saved) : []; 
-  }
-  function saveCart() { localStorage.setItem('tn28_cart', JSON.stringify(window.cart)); updateCartBadge(); renderCart(); }
-  function updateCartBadge() { var b = document.getElementById('cartBadge'); if (b) b.textContent = window.cart.length; }
+  };
+  window.saveCart = function() { localStorage.setItem('tn28_cart', JSON.stringify(window.cart)); window.updateCartBadge(); window.renderCart(); };
+  window.updateCartBadge = function() { var b = document.getElementById('cartBadge'); if (b) b.textContent = window.cart.length; };
 
   window.addToCart = function(pid) {
     var p = null;
@@ -284,7 +290,7 @@
         var pCheck = window.products[i];
         if((pCheck.id||'').toString() == pid.toString() || (pCheck.fbId||'').toString() == pid.toString()) { p = pCheck; break; }
     }
-    if (p) { window.cart.push(p); saveCart(); window.showToast('Added to cart', 'success'); }
+    if (p) { window.cart.push(p); window.saveCart(); window.showToast('Added to cart', 'success'); }
   };
 
   window.buyNow = function(pid) {
@@ -293,10 +299,10 @@
         var pCheck = window.products[i];
         if((pCheck.id||'').toString() == pid.toString() || (pCheck.fbId||'').toString() == pid.toString()) { p = pCheck; break; }
     }
-    if (p) { window.cart = [p]; saveCart(); window.openCheckoutModal(); }
+    if (p) { window.cart = [p]; window.saveCart(); window.openCheckoutModal(); }
   };
 
-  function renderCart() {
+  window.renderCart = function() {
     var c = document.getElementById('cartItems'); if (!c) return;
     if (window.cart.length === 0) {
       document.getElementById('cartEmpty').style.display = 'block';
@@ -316,13 +322,13 @@
                 '<div><div style="font-weight:600">'+item.name+'</div>' +
                 '<div style="font-size:12px;color:#666">Size: '+(item.selectedSize||'Standard')+' | Qty: '+q+'</div></div>' +
                 '<div style="font-weight:700">₹'+p+'</div>' +
-                '<button onclick="removeFromCart('+i+')" style="color:#ff4444;padding:5px">×</button></div>';
+                '<button onclick="window.removeFromCart('+i+')" style="color:#ff4444;padding:5px">×</button></div>';
     }
     c.innerHTML = html;
     document.getElementById('cartTotal').textContent = '₹' + total;
-  }
+  };
 
-  window.removeFromCart = function(i) { window.cart.splice(i,1); saveCart(); };
+  window.removeFromCart = function(i) { window.cart.splice(i,1); window.saveCart(); };
 
   window.openQuickView = function(pid) {
     var p = null;
@@ -368,11 +374,11 @@
 
       if (sArr.length > 0) {
         sizeContainer.innerHTML = sArr.map(function(s) {
-          return '<div class="size-option" onclick="selectSize(\''+s+'\', this)">' + s + '</div>';
+          return '<div class="size-option" onclick="window.selectSize(\''+s+'\', this)">' + s + '</div>';
         }).join('');
       } else {
         sizeContainer.innerHTML = '<div class="size-selected-msg" style="font-size:13px;color:#ef4444;font-weight:700;padding:5px;border:1px solid #ef4444;border-radius:4px;display:inline-block;">Standard Size (Free Size)</div>';
-        selectedSize = 'Standard';
+        window.selectedSize = 'Standard';
       }
     }
 
@@ -402,7 +408,7 @@
     cartItem.qty = qty;
 
     window.cart.push(cartItem);
-    saveCart();
+    window.saveCart();
     window.closeModal('quickView');
     window.showToast('Added to cart', 'success');
   };
@@ -420,7 +426,7 @@
     cartItem.qty = qty;
 
     window.cart = [cartItem];
-    saveCart();
+    window.saveCart();
     window.openCheckoutModal();
   };
 
@@ -443,7 +449,7 @@
     e.textContent = m; c.appendChild(e); setTimeout(function(){e.remove();}, 3000);
   };
 
-  function initHeroSlider() {
+  window.initHeroSlider = function() {
     var slides = document.querySelectorAll('.hero-bg-image');
     if (!slides.length) return;
     setInterval(function() {
@@ -451,12 +457,12 @@
       heroSlideIndex = (heroSlideIndex + 1) % slides.length;
       slides[heroSlideIndex].classList.add('active');
     }, 5000);
-  }
+  };
 
-  function detectLocation() {
+  window.detectLocation = function() {
     var el = document.getElementById('userLocation');
     if (el) el.textContent = "Rasipuram, Namakkal";
-  }
+  };
 
   window.openCheckoutModal = function() {
     var ov = document.getElementById('checkoutOverlay');
@@ -486,7 +492,7 @@
       }
       
       if (s === 'Review' || s === 'Summary') {
-        renderCheckoutReview();
+        window.renderCheckoutReview();
       }
       
       // Scroll to top of modal for mobile
@@ -495,7 +501,7 @@
     }
   };
 
-  function renderCheckoutReview() {
+  window.renderCheckoutReview = function() {
     var ci = document.getElementById('checkoutOrderItems');
     var cif = document.getElementById('checkoutOrderItemsFinal');
     var containers = [ci, cif];
@@ -531,7 +537,7 @@
     update('coShippingFinal', shipping);
     update('coTotal', total);
     update('coTotalFinal', total);
-  }
+  };
 
   window.selectPayment = function(m) {
     selectedPaymentMethod = m;
@@ -596,19 +602,19 @@
     setTimeout(function() {
       window.open('https://wa.me/919600447624?text=' + msg, '_blank');
       window.cart = []; 
-      saveCart();
+      window.saveCart();
       window.closeModal('checkout');
       window.openModal('orderSuccess');
     }, 1000);
   };
 
   window.filterByBrand = function(b) {
-    renderFeatured(b, 'brand');
+    if (window.renderFeatured) window.renderFeatured(b, 'brand');
     window.location.hash = 'featured';
   };
 
   window.filterByCategory = function(c) {
-    renderFeatured(c, 'category');
+    if (window.renderFeatured) window.renderFeatured(c, 'category');
     window.location.hash = 'featured';
   };
 
@@ -618,5 +624,5 @@
     document.addEventListener('DOMContentLoaded', window.initApp);
   }
 
-  function renderOffers() { /* Standardized static display */ }
+  window.renderOffers = function() { /* Standardized static display */ };
 })();
