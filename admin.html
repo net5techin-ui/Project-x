@@ -212,19 +212,35 @@
                 <div class="form-group"><label>Discount % *</label><input type="number" id="offerDiscount" required min="1" max="99" placeholder="e.g. 50"></div>
                 <div class="form-group"><label>Coupon Code</label><input type="text" id="offerCode" placeholder="e.g. SUMMER50"></div>
                 <div class="form-group"><label>Valid Until</label><input type="date" id="offerExpiry"></div>
-                <div class="form-group full-width"><label>Description</label><textarea id="offerDescription" rows="2" placeholder="Short description of the offer..."></textarea></div>
+                <div class="form-group" style="grid-column: 1 / -1;"><label>Description</label><textarea id="offerDescription" rows="2" placeholder="Short description of the offer..."></textarea></div>
                 <div class="form-group"><label>Banner Image URL</label><input type="url" id="offerImage" placeholder="https://example.com/banner.jpg"></div>
-                <div class="form-group"><label class="checkbox-wrap"><input type="checkbox" id="offerActive" checked> Active</label></div>
+                <div class="form-group" style="display:flex; align-items:flex-end; padding-bottom:10px;"><label class="checkbox-wrap"><input type="checkbox" id="offerActive" checked> Active</label></div>
               </div>
-              <div class="form-actions">
-                <button type="submit" class="btn-admin btn-primary-admin"><i class="fas fa-save"></i> Save Offer</button>
-                <button type="button" class="btn-admin btn-secondary" onclick="resetOfferForm()"><i class="fas fa-times"></i> Cancel</button>
+              <div class="form-actions" style="margin-top:20px;">
+                <button type="button" class="btn-admin btn-primary-admin" onclick="window.handleSaveOffer()"><i class="fas fa-save"></i> Save Offer</button>
+                <button type="button" class="btn-admin btn-secondary" onclick="window.resetOfferForm(); document.getElementById('offerFormCard').style.display='none';"><i class="fas fa-times"></i> Cancel</button>
               </div>
             </form>
           </div>
 
           <!-- Offers List -->
-          <div id="offersListContainer" style="margin-top:20px;"></div>
+          <div class="table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Discount</th>
+                  <th>Code</th>
+                  <th>Expiry</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="offersTableBody">
+                <!-- Offers will be rendered here -->
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </main>

@@ -1,302 +1,223 @@
-// TN28 Admin Engine — Universal Legacy 2.0 (PRODUCTION READY)
 (function() {
   var products = [];
   var orders = [];
-  var mediaLibrary = [];
   var offers = [];
-  var currentTab = 'dashboard';
+  var mediaLibrary = [];
 
   window.initAdmin = function() {
-    console.log('🛡️ TN28 Enterprise Admin Active');
-    initTabs();
-    initImageHandlers();
+    console.log('🛡️ TN28 Admin Engine v7.0 Initialized');
+    checkSecurity();
     
-    var pForm = document.getElementById('productForm');
-    if (pForm) {
-      pForm.addEventListener('submit', handleSaveProduct);
-      var sBtn = document.getElementById('saveProductBtn');
-      if(sBtn) sBtn.addEventListener('click', function() {
-         if (pForm.checkValidity()) handleSaveProduct(); else pForm.reportValidity();
-      });
-    }
-    
-    var pTable = document.getElementById('productsTable');
-    if (pTable) pTable.addEventListener('click', handleTableClick);
+    // Auto-refresh data every 30 seconds
+    setInterval(function(){
+      if(sessionStorage.getItem('tn28_admin_auth') === 'true') {
+        loadProducts();
+        loadOrders();
+        loadOffers();
+      }
+    }, 30000);
+  };
 
-    var rBtn = document.getElementById('btnRefreshData');
-    if (rBtn) rBtn.addEventListener('click', loadAndRender);
-    
-    var isAuth = sessionStorage.getItem('tn28_admin_auth');
-    if (isAuth === 'true') {
+  function checkSecurity() {
+    var auth = sessionStorage.getItem('tn28_admin_auth');
+    if (auth === 'true') {
       document.getElementById('adminGate').style.display = 'none';
-      document.getElementById('mainAdminLayout').style.display = 'grid';
-      loadAndRender();
-    } else {
-      initAdminGate();
+      document.getElementById('adminLayout').style.display = 'grid';
+      loadProducts();
+      loadOrders();
+      loadOffers();
+      loadMedia();
     }
-    
-    loadOffers();
-    loadOrders();
-    var oForm = document.getElementById('offerForm');
-    if (oForm) oForm.addEventListener('submit', handleSaveOffer);
+  }
 
-    // Live Listeners
-    if (window.backend && window.backend.onProductsChange) {
-      window.backend.onProductsChange(function(updated) { if(updated) { products = updated; renderDashboard(); renderProductsTable(); } });
-    }
-    if (window.backend && window.backend.onOrdersChange) {
-      window.backend.onOrdersChange(function(updated) { if(updated) { orders = updated; renderDashboard(); renderOrders(); } });
+  window.verifyPIN = function() {
+    var pInput = document.getElementById('adminPIN');
+    if (pInput.value === '9600') {
+      sessionStorage.setItem('tn28_admin_auth', 'true');
+      checkSecurity();
+    } else {
+      var err = document.getElementById('gateError');
+      err.style.display = 'block';
+      setTimeout(function(){ err.style.display='none'; }, 2000);
     }
   };
 
-  // --- SECURITY ---
-  function initAdminGate() {
-    var pInput = document.getElementById('adminPin');
-    var bEnter = document.getElementById('btnEnterGate');
-    var check = function() {
-      if (pInput.value === '9600') {
-        sessionStorage.setItem('tn28_admin_auth', 'true');
-        document.getElementById('adminGate').style.display = 'none';
-        document.getElementById('mainAdminLayout').style.display = 'grid';
-        loadAndRender();
-      } else {
-        var e = document.getElementById('gateError');
-        e.style.display = 'block'; pInput.value = '';
-        setTimeout(function(){ e.style.display = 'none'; }, 2000);
-      }
-    };
-    if(bEnter) bEnter.addEventListener('click', check);
-    if(pInput) pInput.addEventListener('keypress', function(e){ if(e.key === 'Enter') check(); });
-  }
+  window.switchTab = function(tabId) {
+    var tabs = document.querySelectorAll('.tab-content');
+    var navs = document.querySelectorAll('.nav-item');
+    for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+    for (var j = 0; j < navs.length; j++) navs[j].classList.remove('active');
 
-  // --- DATA ---
-  function loadAndRender() {
-    if (!window.backend) return;
-    window.showAdminToast('Synchronizing Cloud Data...', 'info');
-    window.backend.fetchProducts(true).then(function(fetched) {
+    var target = document.getElementById('tab-' + tabId);
+    if(target) target.classList.add('active');
+    
+    var nav = document.querySelector('[onclick="window.switchTab(\''+tabId+'\')"]');
+    if(nav) nav.classList.add('active');
+
+    if(tabId === 'add-product') window.resetForm();
+    if(tabId === 'add-offer') window.resetOfferForm();
+  };
+
+  function loadProducts() {
+    if(!window.backend) return;
+    window.backend.fetchProducts(true).then(function(fetched){
       products = fetched;
+      renderProducts();
       renderDashboard();
-      renderProductsTable();
-      renderBrands();
-      renderMediaGrid();
-      window.showAdminToast('Sync Complete', 'success');
-    });
-    loadOrders();
-  }
-
-  function handleSaveProduct(e) {
-    if(e && e.preventDefault) e.preventDefault();
-    var img = document.getElementById('pImage').value;
-    if(!img) { window.showAdminToast('Please upload an image first', 'error'); return; }
-
-    var editId = document.getElementById('editId').value;
-    var productData = {
-      name: document.getElementById('pName').value,
-      brand: document.getElementById('pBrand').value,
-      category: document.getElementById('pCategory').value.toLowerCase(),
-      price: Number(document.getElementById('pPrice').value),
-      originalPrice: Number(document.getElementById('pOriginalPrice').value) || null,
-      stock: Number(document.getElementById('pStock').value),
-      image: img,
-      sizes: document.getElementById('pSizes').value.split(',').map(function(s){return s.trim();}),
-      description: document.getElementById('pDescription').value,
-      isNew: document.getElementById('pIsNew').checked,
-      isSale: document.getElementById('pIsSale').checked,
-      isHot: document.getElementById('pIsHot').checked,
-      fabric: document.getElementById('pFabric').value
-    };
-    if (editId) productData.id = Number(editId);
-
-    window.showAdminToast('Saving to Cloud...', 'info');
-    window.backend.saveProduct(productData).then(function() {
-      window.showAdminToast('Product Saved Knowledge!', 'success');
-      loadAndRender();
-      window.resetForm();
-      window.switchTab('products');
-    }).catch(function(err) {
-      window.showAdminToast('Cloud Error: ' + err.message, 'error');
     });
   }
 
-  // --- RENDERING ---
-  function renderProductsTable() {
-    var tb = document.getElementById('productsTable'); if(!tb) return;
-    if (products.length === 0) { tb.innerHTML = '<tr><td colspan="6">No products found</td></tr>'; return; }
-    tb.innerHTML = products.map(function(p) {
+  function renderDashboard() {
+    document.getElementById('statTotalProducts').textContent = products.length;
+    document.getElementById('statTotalOrders').textContent = orders.length;
+    
+    var rev = 0;
+    for(var i=0; i<orders.length; i++) rev += (orders[i].total || 0);
+    document.getElementById('statRevenue').textContent = '₹' + rev.toLocaleString();
+    
+    var brands = {};
+    for(var j=0; j<products.length; j++) { if(products[j].brand) brands[products[j].brand] = true; }
+    document.getElementById('statBrands').textContent = Object.keys(brands).length;
+
+    // Recent Products
+    var recent = products.slice(0, 5);
+    var rCont = document.getElementById('recentProductsList');
+    if(rCont) {
+      rCont.innerHTML = recent.map(function(p){
+        return '<div class="brand-item"><span>'+p.name+'</span><span class="brand-count">₹'+p.price+'</span></div>';
+      }).join('');
+    }
+
+    // Brands List
+    var bCont = document.getElementById('brandsList');
+    if(bCont) {
+      bCont.innerHTML = Object.keys(brands).map(function(b){
+        return '<div class="brand-item"><span>'+b+'</span><i class="fas fa-check-circle" style="color:var(--success)"></i></div>';
+      }).join('');
+    }
+  }
+
+  function renderProducts() {
+    var container = document.getElementById('productsTableBody');
+    if(!container) return;
+    container.innerHTML = products.map(function(p) {
       return '<tr>' +
         '<td><img src="'+p.image+'" style="width:40px;height:50px;object-fit:cover;border-radius:4px"></td>' +
-        '<td><strong>'+p.name+'</strong></td>' +
-        '<td>'+p.brand+'</td>' +
-        '<td style="text-transform:capitalize">'+(p.category || 'general')+'</td>' +
-        '<td>₹'+p.price.toLocaleString()+'</td>' +
+        '<td>'+p.name+'</td>' +
+        '<td>'+(p.brand||'TN28')+'</td>' +
+        '<td>'+p.category+'</td>' +
+        '<td>₹'+p.price+'</td>' +
         '<td>'+(p.stock||0)+'</td>' +
         '<td>' +
-          '<button class="btn-admin" onclick="editProduct('+p.id+')"><i class="fas fa-edit"></i></button> ' +
-          '<button class="btn-admin" onclick="deleteProduct('+p.id+')" style="color:#ef4444"><i class="fas fa-trash"></i></button>' +
+          '<div class="table-actions">' +
+            '<button class="btn-edit" onclick="window.editProduct('+p.id+')"><i class="fas fa-edit"></i></button>' +
+            '<button class="btn-delete" onclick="window.deleteProduct('+p.id+')"><i class="fas fa-trash"></i></button>' +
+          '</div>' +
         '</td>' +
       '</tr>';
     }).join('');
   }
 
-  function renderDashboard() {
-    var tp = document.getElementById('totalProducts'); if(tp) tp.textContent = products.length;
-    var to = document.getElementById('totalOrders'); if(to) to.textContent = orders.length;
-    var tr = document.getElementById('totalRevenue'); if(tr) {
-       var total = orders.reduce(function(s,o){ return s + (o.total || 0); }, 0);
-       tr.textContent = '₹' + total.toLocaleString();
-    }
-    
-    // Fill recent products
-    var rp = document.getElementById('recentProducts');
-    if (rp) {
-      if (products.length === 0) rp.innerHTML = '<p style="padding:10px">No products yet</p>';
-      else {
-        rp.innerHTML = products.slice(0, 5).map(function(p){
-          return '<div style="display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px solid #eee">' +
-            '<img src="'+p.image+'" style="width:30px;height:30px;border-radius:4px;object-fit:cover">' +
-            '<div style="flex:1;font-size:13px"><strong>'+p.name+'</strong><br><span style="color:#666">₹'+p.price+'</span></div>' +
-          '</div>';
-        }).join('');
-      }
-    }
-    
-    // Calculate brands
-    var brands = {};
-    products.forEach(function(p){ if(p.brand) brands[p.brand] = (brands[p.brand]||0) + 1; });
-    var tbr = document.getElementById('totalBrands'); if(tbr) tbr.textContent = Object.keys(brands).length;
-    var blc = document.getElementById('brandsListContainer');
-    if (blc) {
-      blc.innerHTML = Object.keys(brands).map(function(b){
-        return '<div style="display:flex;justify-content:space-between;padding:8px;font-size:13px"><span>'+b+'</span><strong>'+brands[b]+'</strong></div>';
-      }).join('');
-    }
-  }
+  window.handleSaveProduct = function() {
+    var p = {
+      id: document.getElementById('editId').value,
+      name: document.getElementById('pName').value,
+      brand: document.getElementById('pBrand').value,
+      category: document.getElementById('pCategory').value,
+      price: document.getElementById('pPrice').value,
+      stock: document.getElementById('pStock').value,
+      description: document.getElementById('pDesc').value,
+      image: document.getElementById('pImage').value,
+      sizes: document.getElementById('pSizes').value.split(',').map(function(s){return s.trim();}),
+      isNew: document.getElementById('pNew').checked,
+      isSale: document.getElementById('pSale').checked,
+      isHot: document.getElementById('pHot').checked
+    };
 
-  // --- ACTIONS ---
+    if(!p.name || !p.price) { window.showToast('Name and Price required', 'error'); return; }
+
+    window.backend.saveProduct(p).then(function(){
+      window.showToast('Product Saved Successfully', 'success');
+      loadProducts();
+      window.switchTab('products');
+    }).catch(function(err){ window.showToast('Save failed: ' + err.message, 'error'); });
+  };
+
   window.editProduct = function(id) {
-    var p = products.find(function(x){ return x.id == id; }); if(!p) return;
+    var p = products.find(function(x){ return x.id == id; });
+    if(!p) return;
     document.getElementById('editId').value = p.id;
     document.getElementById('pName').value = p.name;
-    document.getElementById('pBrand').value = p.brand;
+    document.getElementById('pBrand').value = p.brand || '';
     document.getElementById('pCategory').value = p.category;
     document.getElementById('pPrice').value = p.price;
-    document.getElementById('pOriginalPrice').value = p.originalPrice || '';
-    document.getElementById('pStock').value = p.stock || 0;
+    document.getElementById('pStock').value = p.stock || '';
+    document.getElementById('pDesc').value = p.description || '';
     document.getElementById('pImage').value = p.image;
-    document.getElementById('pSizes').value = p.sizes ? p.sizes.join(', ') : '';
-    document.getElementById('pDescription').value = p.description || '';
-    document.getElementById('pIsNew').checked = !!p.isNew;
-    document.getElementById('pIsSale').checked = !!p.isSale;
-    document.getElementById('pIsHot').checked = !!p.isHot;
-    document.getElementById('pFabric').value = p.fabric || '';
+    document.getElementById('pSizes').value = (p.sizes || []).join(', ');
+    document.getElementById('pNew').checked = p.isNew;
+    document.getElementById('pSale').checked = p.isSale;
+    document.getElementById('pHot').checked = p.isHot;
     
-    var prev = document.getElementById('previewImg');
-    if(prev) { prev.src = p.image; document.getElementById('uploadPlaceholder').style.display='none'; document.getElementById('uploadPreview').style.display='block'; }
-    
+    document.getElementById('formTitle').textContent = 'Edit Product';
+    if(p.image) {
+       document.getElementById('previewImg').src = p.image;
+       document.getElementById('uploadPlaceholder').style.display = 'none';
+       document.getElementById('uploadPreview').style.display = 'block';
+    }
     window.switchTab('add-product');
-    document.getElementById('formTitle').textContent = 'Edit Product #' + p.id;
   };
 
   window.deleteProduct = function(id) {
-    if(!confirm('Permanently delete this product?')) return;
-    var p = products.find(function(x){ return x.id == id; });
-    window.showAdminToast('Deleting...', 'info');
-    window.backend.deleteProduct(p).then(function(){ 
-        window.showAdminToast('Deleted from Cloud', 'success');
-        loadAndRender(); 
+    if(!confirm('Are you sure you want to delete this product?')) return;
+    window.backend.deleteProduct({id: id}).then(function(){
+      window.showToast('Product Deleted', 'info');
+      loadProducts();
     });
   };
 
-  // --- UI ---
-  function initTabs() {
-    var items = document.querySelectorAll('.nav-item');
-    for(var i=0; i<items.length; i++) {
-        items[i].addEventListener('click', function() { window.switchTab(this.dataset.tab); });
-    }
-  }
-
-  window.switchTab = function(t) {
-    var tabs = document.querySelectorAll('.tab-content');
-    for(var i=0; i<tabs.length; i++) tabs[i].style.display = 'none';
-    var navs = document.querySelectorAll('.nav-item');
-    for(var j=0; j<navs.length; j++) navs[j].classList.remove('active');
-    
-    var activeTab = document.getElementById('tab-'+t);
-    var activeNav = document.querySelector('.nav-item[data-tab="'+t+'"]');
-    if(activeTab) activeTab.style.display = 'block';
-    if(activeNav) activeNav.classList.add('active');
-    if(t === 'media') renderMediaGrid();
+  window.handleImageUpload = function(input) {
+    var file = input.files[0];
+    if(!file) return;
+    window.showToast('Uploading image...', 'info');
+    window.backend.uploadImage(file).then(function(url){
+      document.getElementById('pImage').value = url;
+      document.getElementById('previewImg').src = url;
+      document.getElementById('uploadPlaceholder').style.display='none';
+      document.getElementById('uploadPreview').style.display='block';
+      
+      // Save to media library
+      saveToMedia(url);
+    }).catch(function(err){ window.showToast('Upload failed', 'error'); });
   };
-
-  function initImageHandlers() {
-    var fileInput = document.getElementById('imageFileInput');
-    var browseBtn = document.getElementById('btnBrowse');
-    if(browseBtn) browseBtn.addEventListener('click', function(){ fileInput.click(); });
-    
-    if(fileInput) fileInput.addEventListener('change', function(e) {
-      var file = e.target.files[0];
-      if(!file) return;
-      
-      window.showAdminToast('Optimizing Image...', 'info');
-      
-      // Client-side Resize for Max Performance & Database Stability
-      var reader = new FileReader();
-      reader.onload = function(re) {
-        var img = new Image();
-        img.onload = function() {
-          var canvas = document.createElement('canvas');
-          var maxW = 800; // Optimal for mobile & desktop
-          var scale = maxW / img.width;
-          if (scale > 1) scale = 1;
-          canvas.width = img.width * scale;
-          canvas.height = img.height * scale;
-          var ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          
-          canvas.toBlob(function(blob) {
-            var resizedFile = new File([blob], file.name, {type: 'image/jpeg'});
-            
-            window.showAdminToast('Uploading Optimized Image...', 'info');
-            window.backend.uploadImage(resizedFile).then(function(url) {
-              document.getElementById('pImage').value = url;
-              document.getElementById('previewImg').src = url;
-              document.getElementById('uploadPlaceholder').style.display='none';
-              document.getElementById('uploadPreview').style.display='block';
-              
-              mediaLibrary.unshift({ id: Date.now(), data: url, name: file.name });
-              localStorage.setItem('tn28_media', JSON.stringify(mediaLibrary.slice(0, 50)));
-              window.showAdminToast('Image Ready!', 'success');
-              renderMediaGrid();
-            }).catch(function(err) {
-              window.showAdminToast('Upload Failed: ' + (err.message || err), 'error');
-            });
-          }, 'image/jpeg', 0.8);
-        };
-        img.src = re.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
-
-    document.getElementById('removeImage')?.addEventListener('click', function(){ window.clearImagePreview(); });
-  }
 
   window.clearImagePreview = function() {
-    document.getElementById('uploadPlaceholder').style.display='';
+    document.getElementById('uploadPlaceholder').style.display='block';
     document.getElementById('uploadPreview').style.display='none';
     document.getElementById('pImage').value = '';
-    document.getElementById('imageFileInput').value = '';
+    document.getElementById('imageInput').value = '';
   };
 
-  window.showAdminToast = function(m, t) {
-    var c = document.getElementById('adminToast'); if(!c) return;
-    var e = document.createElement('div'); e.className = 'toast '+t;
-    e.textContent = m; c.appendChild(e); setTimeout(function(){e.remove();}, 3500);
+  window.showToast = function(msg, type) {
+    var container = document.getElementById('adminToast');
+    if(!container) return;
+    var t = document.createElement('div');
+    t.className = 'toast ' + (type||'info');
+    t.innerHTML = (type==='success'?'<i class="fas fa-check-circle"></i>':(type==='error'?'<i class="fas fa-exclamation-circle"></i>':'<i class="fas fa-info-circle"></i>')) + ' <span>'+msg+'</span>';
+    container.appendChild(t);
+    setTimeout(function(){ t.remove(); }, 3000);
   };
 
-  // --- EXTRAS ---
-  function renderMediaGrid() {
-    var grid = document.getElementById('mediaGrid'); if(!grid) return;
+  function saveToMedia(url) {
     var saved = JSON.parse(localStorage.getItem('tn28_media') || '[]');
+    saved.unshift({id: Date.now(), data: url});
+    localStorage.setItem('tn28_media', JSON.stringify(saved.slice(0, 50)));
+    loadMedia();
+  }
+
+  function loadMedia() {
+    var saved = JSON.parse(localStorage.getItem('tn28_media') || '[]');
+    var grid = document.getElementById('mediaGrid'); if(!grid) return;
     mediaLibrary = saved;
     if(saved.length === 0) { document.getElementById('mediaEmpty').style.display='block'; grid.innerHTML=''; return; }
     document.getElementById('mediaEmpty').style.display='none';
@@ -332,10 +253,85 @@
     }).join('');
   }
 
-  function renderBrands() { /* Calculated on dashboard */ }
-  function loadOffers() {}
-  function handleSaveOffer() {}
-  function handleTableClick() {}
+  function loadOffers() {
+    if(!window.backend || !window.backend.fetchOffers) return;
+    window.backend.fetchOffers().then(function(fetched){
+      offers = fetched;
+      renderOffers();
+    });
+  }
+
+  function renderOffers() {
+    var container = document.getElementById('offersTableBody');
+    if(!container) return;
+    container.innerHTML = offers.map(function(o) {
+      return '<tr>' +
+        '<td>'+o.title+'</td>' +
+        '<td>'+o.discount+'%</td>' +
+        '<td>'+(o.code||'N/A')+'</td>' +
+        '<td>'+(o.expiry||'Infinite')+'</td>' +
+        '<td><span class="badge '+(o.active?'success':'danger')+'">'+(o.active?'Active':'Paused')+'</span></td>' +
+        '<td>' +
+          '<div class="table-actions">' +
+            '<button class="btn-edit" onclick="window.editOffer('+o.id+')"><i class="fas fa-edit"></i></button>' +
+            '<button class="btn-delete" onclick="window.deleteOffer('+o.id+')"><i class="fas fa-trash"></i></button>' +
+          '</div>' +
+        '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  window.handleSaveOffer = function() {
+    var o = {
+      id: document.getElementById('editOfferId').value,
+      title: document.getElementById('offerTitle').value,
+      discount: document.getElementById('offerDiscount').value,
+      code: document.getElementById('offerCode').value,
+      expiry: document.getElementById('offerExpiry').value,
+      description: document.getElementById('offerDescription').value,
+      image: document.getElementById('offerImage').value,
+      active: document.getElementById('offerActive').checked
+    };
+
+    if(!o.title || !o.discount) { window.showToast('Title and Discount required', 'error'); return; }
+
+    window.backend.saveOffer(o).then(function(){
+      window.showToast('Offer Saved Successfully', 'success');
+      loadOffers();
+      window.switchTab('offers');
+    }).catch(function(err){ window.showToast('Save failed: ' + err.message, 'error'); });
+  };
+
+  window.editOffer = function(id) {
+    var o = offers.find(function(x){ return x.id == id; });
+    if(!o) return;
+    document.getElementById('editOfferId').value = o.id;
+    document.getElementById('offerTitle').value = o.title;
+    document.getElementById('offerDiscount').value = o.discount;
+    document.getElementById('offerCode').value = o.code || '';
+    document.getElementById('offerExpiry').value = o.expiry || '';
+    document.getElementById('offerDescription').value = o.description || '';
+    document.getElementById('offerImage').value = o.image || '';
+    document.getElementById('offerActive').checked = o.active !== false;
+    
+    document.getElementById('offerFormTitle').textContent = 'Edit Offer';
+    window.switchTab('add-offer');
+  };
+
+  window.deleteOffer = function(id) {
+    if(!confirm('Are you sure you want to delete this offer?')) return;
+    window.backend.deleteOffer(id).then(function(){
+      window.showToast('Offer Deleted', 'info');
+      loadOffers();
+    });
+  };
+
+  window.resetOfferForm = function() {
+    document.getElementById('offerForm').reset();
+    document.getElementById('editOfferId').value = '';
+    document.getElementById('offerFormTitle').textContent = 'Create New Offer';
+  };
+
   window.resetForm = function() { document.getElementById('productForm').reset(); document.getElementById('editId').value=''; window.clearImagePreview(); document.getElementById('formTitle').textContent='Add New Product'; };
 
   if (document.readyState === 'complete' || document.readyState === 'interactive') {

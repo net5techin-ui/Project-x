@@ -141,5 +141,44 @@ window.backend = {
         reader.readAsDataURL(file);
       });
     });
+  },
+
+  fetchOffers: function() {
+    var client = getSupabase();
+    if (!client) return { then: function(cb){ cb([]); } };
+    return client.from('offers').select('*').order('created_at', { ascending: false }).then(function(res) {
+      if (res.error) {
+        console.error('❌ Supabase Offers Fetch Error:', res.error);
+        return [];
+      }
+      return res.data || [];
+    });
+  },
+
+  saveOffer: function(offer) {
+    var client = getSupabase();
+    if (!client) return Promise.reject('No Supabase client');
+    
+    var payload = {
+      title: offer.title,
+      discount: Number(offer.discount),
+      code: offer.code || '',
+      expiry: offer.expiry || null,
+      description: offer.description || '',
+      image: offer.image || '',
+      active: offer.active !== false
+    };
+    if (offer.id) payload.id = Number(offer.id);
+    
+    return client.from('offers').upsert(payload).select().then(function(res) {
+      if (res.error) throw res.error;
+      return res.data[0];
+    });
+  },
+
+  deleteOffer: function(id) {
+    var client = getSupabase();
+    if (!client) return Promise.reject('No Supabase client');
+    return client.from('offers').delete().eq('id', id);
   }
 };
