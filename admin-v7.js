@@ -7,6 +7,18 @@
   window.initAdmin = function() {
     console.log('🛡️ TN28 Admin Engine v7.0 Initialized');
     checkSecurity();
+
+    // Hook up PIN Entry
+    var gateBtn = document.getElementById('btnEnterGate');
+    if (gateBtn) {
+      gateBtn.addEventListener('click', window.verifyPIN);
+    }
+    var pinInput = document.getElementById('adminPin');
+    if (pinInput) {
+      pinInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') window.verifyPIN();
+      });
+    }
     
     // Auto-refresh data every 30 seconds
     setInterval(function(){
@@ -21,8 +33,10 @@
   function checkSecurity() {
     var auth = sessionStorage.getItem('tn28_admin_auth');
     if (auth === 'true') {
-      document.getElementById('adminGate').style.display = 'none';
-      document.getElementById('adminLayout').style.display = 'grid';
+      var gate = document.getElementById('adminGate');
+      var layout = document.getElementById('mainAdminLayout');
+      if (gate) gate.style.display = 'none';
+      if (layout) layout.style.display = 'grid';
       loadProducts();
       loadOrders();
       loadOffers();
@@ -31,19 +45,22 @@
   }
 
   window.verifyPIN = function() {
-    var pInput = document.getElementById('adminPIN');
+    var pInput = document.getElementById('adminPin');
     if (pInput.value === '9600') {
       sessionStorage.setItem('tn28_admin_auth', 'true');
       checkSecurity();
     } else {
       var err = document.getElementById('gateError');
-      err.style.display = 'block';
-      setTimeout(function(){ err.style.display='none'; }, 2000);
+      if (err) {
+        err.style.display = 'block';
+        setTimeout(function(){ err.style.display='none'; }, 2000);
+      }
     }
   };
 
   window.switchTab = function(tabId) {
     var tabs = document.querySelectorAll('.tab-content');
+    // Using [data-tab] attribute for nav items
     var navs = document.querySelectorAll('.nav-item');
     for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
     for (var j = 0; j < navs.length; j++) navs[j].classList.remove('active');
@@ -51,7 +68,7 @@
     var target = document.getElementById('tab-' + tabId);
     if(target) target.classList.add('active');
     
-    var nav = document.querySelector('[onclick="window.switchTab(\''+tabId+'\')"]');
+    var nav = document.querySelector('[data-tab="'+tabId+'"]');
     if(nav) nav.classList.add('active');
 
     if(tabId === 'add-product') window.resetForm();
@@ -68,16 +85,16 @@
   }
 
   function renderDashboard() {
-    document.getElementById('statTotalProducts').textContent = products.length;
-    document.getElementById('statTotalOrders').textContent = orders.length;
+    var tp = document.getElementById('statTotalProducts'); if(tp) tp.textContent = products.length;
+    var to = document.getElementById('statTotalOrders'); if(to) to.textContent = orders.length;
     
     var rev = 0;
     for(var i=0; i<orders.length; i++) rev += (orders[i].total || 0);
-    document.getElementById('statRevenue').textContent = '₹' + rev.toLocaleString();
+    var sr = document.getElementById('statRevenue'); if(sr) sr.textContent = '₹' + rev.toLocaleString();
     
     var brands = {};
     for(var j=0; j<products.length; j++) { if(products[j].brand) brands[products[j].brand] = true; }
-    document.getElementById('statBrands').textContent = Object.keys(brands).length;
+    var sb = document.getElementById('statBrands'); if(sb) sb.textContent = Object.keys(brands).length;
 
     // Recent Products
     var recent = products.slice(0, 5);
@@ -282,8 +299,9 @@
   }
 
   window.handleSaveOffer = function() {
+    var idEl = document.getElementById('editOfferId');
     var o = {
-      id: document.getElementById('editOfferId').value,
+      id: idEl ? idEl.value : '',
       title: document.getElementById('offerTitle').value,
       discount: document.getElementById('offerDiscount').value,
       code: document.getElementById('offerCode').value,
@@ -299,6 +317,7 @@
       window.showToast('Offer Saved Successfully', 'success');
       loadOffers();
       window.switchTab('offers');
+      document.getElementById('offerFormCard').style.display = 'none';
     }).catch(function(err){ window.showToast('Save failed: ' + err.message, 'error'); });
   };
 
@@ -315,7 +334,8 @@
     document.getElementById('offerActive').checked = o.active !== false;
     
     document.getElementById('offerFormTitle').textContent = 'Edit Offer';
-    window.switchTab('add-offer');
+    document.getElementById('offerFormCard').style.display = 'block';
+    window.switchTab('offers');
   };
 
   window.deleteOffer = function(id) {
@@ -332,7 +352,21 @@
     document.getElementById('offerFormTitle').textContent = 'Create New Offer';
   };
 
-  window.resetForm = function() { document.getElementById('productForm').reset(); document.getElementById('editId').value=''; window.clearImagePreview(); document.getElementById('formTitle').textContent='Add New Product'; };
+  window.resetForm = function() { 
+    document.getElementById('productForm').reset(); 
+    document.getElementById('editId').value=''; 
+    window.clearImagePreview(); 
+    document.getElementById('formTitle').textContent='Add New Product'; 
+  };
+
+  // Sidebar listeners
+  document.addEventListener('click', function(e) {
+    var nav = e.target.closest('.nav-item');
+    if (nav && nav.hasAttribute('data-tab')) {
+      e.preventDefault();
+      window.switchTab(nav.getAttribute('data-tab'));
+    }
+  });
 
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
     window.initAdmin();
