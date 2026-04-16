@@ -654,7 +654,7 @@
     
     var html = '<section class="section" style="background:#fefce8; padding:40px 0; margin-bottom: 30px;"><div class="container">';
     html += '<h2 style="text-align:center; margin-bottom: 30px; font-family:\'Playfair Display\', serif;">Active Offers</h2>';
-    html += '<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">';
+    html += '<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">';
     
     var activeOffers = window.offers.filter(function(o){ return o.active !== false; });
     
