@@ -584,20 +584,20 @@
     
     var msgBody = '*NEW ORDER - TN28 FASHIONS*' +
                  '\n━━━━━━━━━━━━━━━━━━' +
-                 '\n👤 *Customer:* ' + n +
-                 '\n📞 *Phone:* ' + p +
-                 '\n🏠 *Address:* ' + addr + 
-                 (landmark ? '\n🔖 *Landmark:* ' + landmark : '') +
-                 '\n📍 *City & State:* ' + city + ', ' + state +
-                 '\n📮 *Pincode:* ' + pin +
+                 '\n*Customer:* ' + n +
+                 '\n*Phone:* ' + p +
+                 '\n*Address:* ' + addr + 
+                 (landmark ? '\n*Landmark:* ' + landmark : '') +
+                 '\n*City & State:* ' + city + ', ' + state +
+                 '\n*Pincode:* ' + pin +
                  '\n━━━━━━━━━━━━━━━━━━' +
-                 '\n🛍️ *Items:*' + itemsList +
+                 '\n*Items:*' + itemsList +
                  '\n━━━━━━━━━━━━━━━━━━' +
-                 '\n💰 *Subtotal:* ₹' + subtotal +
-                 '\n🚚 *Shipping:* ₹' + shipping +
-                 '\n🔥 *GRAND TOTAL: ₹' + grandTotal + '*' +
+                 '\n*Subtotal:* ₹' + subtotal +
+                 '\n*Shipping:* ₹' + shipping +
+                 '\n*GRAND TOTAL: ₹' + grandTotal + '*' +
                  '\n━━━━━━━━━━━━━━━━━━' +
-                 '\n✅ *Payment Status:* Initiated (' + selectedPaymentMethod + ')';
+                 '\n*Payment Status:* Initiated (' + selectedPaymentMethod + ')';
 
     var msg = encodeURIComponent(msgBody);
     window.showToast('Redirecting to WhatsApp...', 'info');
