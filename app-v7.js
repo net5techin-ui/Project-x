@@ -561,10 +561,13 @@
   window.handleCheckoutFinal = function() {
     var n = document.getElementById('coFullName').value;
     var p = document.getElementById('coPhone').value;
+    var pin = document.getElementById('coPincode') ? document.getElementById('coPincode').value : '';
+    var state = document.getElementById('coState') ? document.getElementById('coState').value : '';
     var city = document.getElementById('coCity').value;
     var addr = document.getElementById('coAddress').value;
+    var landmark = document.getElementById('coLandmark') ? document.getElementById('coLandmark').value : '';
     
-    if (!n || !p || !city || !addr) { window.showToast('Please fill all address fields', 'error'); return; }
+    if (!n || !p || !city || !addr || !pin) { window.showToast('Please fill all required address fields', 'error'); return; }
     
     var subtotal = 0;
     var itemsList = '';
@@ -573,26 +576,28 @@
       var q = it.qty || 1;
       var pr = it.price * q;
       subtotal += pr;
-      itemsList += '\\n- ' + it.name + ' (' + (it.selectedSize || 'Standard') + ') x' + q + ': ₹' + pr;
+      itemsList += '\n- ' + it.name + ' (' + (it.selectedSize || 'Standard') + ') x' + q + ': ₹' + pr;
     }
     
     var shipping = subtotal > 999 ? 0 : 70;
     var grandTotal = subtotal + shipping;
     
     var msgBody = '*NEW ORDER - TN28 FASHIONS*' +
-                 '\\n━━━━━━━━━━━━━━━━━━' +
-                 '\\n👤 *Customer:* ' + n +
-                 '\\n📞 *Phone:* ' + p +
-                 '\\n📍 *City:* ' + city +
-                 '\\n🏠 *Address:* ' + addr +
-                 '\\n━━━━━━━━━━━━━━━━━━' +
-                 '\\n🛍️ *Items:*' + itemsList +
-                 '\\n━━━━━━━━━━━━━━━━━━' +
-                 '\\n💰 *Subtotal:* ₹' + subtotal +
-                 '\\n🚚 *Shipping:* ₹' + shipping +
-                 '\\n🔥 *GRAND TOTAL: ₹' + grandTotal + '*' +
-                 '\\n━━━━━━━━━━━━━━━━━━' +
-                 '\\n✅ *Payment Status:* Initiated (' + selectedPaymentMethod + ')';
+                 '\n━━━━━━━━━━━━━━━━━━' +
+                 '\n👤 *Customer:* ' + n +
+                 '\n📞 *Phone:* ' + p +
+                 '\n🏠 *Address:* ' + addr + 
+                 (landmark ? '\n🔖 *Landmark:* ' + landmark : '') +
+                 '\n📍 *City & State:* ' + city + ', ' + state +
+                 '\n📮 *Pincode:* ' + pin +
+                 '\n━━━━━━━━━━━━━━━━━━' +
+                 '\n🛍️ *Items:*' + itemsList +
+                 '\n━━━━━━━━━━━━━━━━━━' +
+                 '\n💰 *Subtotal:* ₹' + subtotal +
+                 '\n🚚 *Shipping:* ₹' + shipping +
+                 '\n🔥 *GRAND TOTAL: ₹' + grandTotal + '*' +
+                 '\n━━━━━━━━━━━━━━━━━━' +
+                 '\n✅ *Payment Status:* Initiated (' + selectedPaymentMethod + ')';
 
     var msg = encodeURIComponent(msgBody);
     window.showToast('Redirecting to WhatsApp...', 'info');
@@ -602,7 +607,12 @@
       window.backend.placeOrder({
         orderId: 'TN28-' + Date.now().toString().slice(-6),
         customer: { name: n, phone: p },
-        address: { city: city, fullAddress: addr },
+        address: { 
+          city: city, 
+          state: state,
+          pincode: pin,
+          fullAddress: addr + (landmark ? ', Landmark: ' + landmark : '') 
+        },
         items: window.cart,
         total: grandTotal,
         status: 'pending'
