@@ -19,6 +19,86 @@
         if (e.key === 'Enter') window.verifyPIN();
       });
     }
+
+    // Bind Image Upload
+    var fileInput = document.getElementById('imageFileInput');
+    if (fileInput) {
+      fileInput.addEventListener('change', function() {
+        window.handleImageUpload(this);
+      });
+    }
+
+    var btnBrowse = document.getElementById('btnBrowse');
+    if (btnBrowse) {
+      btnBrowse.addEventListener('click', function() {
+        if (fileInput) fileInput.click();
+      });
+    }
+    
+    var btnRemove = document.getElementById('removeImage');
+    if (btnRemove) {
+        btnRemove.addEventListener('click', window.clearImagePreview);
+    }
+
+    // Bind URL Load
+    var btnLoadUrl = document.getElementById('btnLoadUrl');
+    var pImageUrl = document.getElementById('pImageUrl');
+    if (btnLoadUrl && pImageUrl) {
+      btnLoadUrl.addEventListener('click', function() {
+          var url = pImageUrl.value.trim();
+          if (url) {
+              document.getElementById('pImage').value = url;
+              document.getElementById('previewImg').src = url;
+              document.getElementById('uploadPlaceholder').style.display = 'none';
+              document.getElementById('uploadPreview').style.display = 'block';
+              window.showToast('Image loaded from URL', 'success');
+          }
+      });
+    }
+
+    // Bind Media Library Button
+    var btnMediaLib = document.getElementById('btnMediaLib');
+    if (btnMediaLib) {
+      btnMediaLib.addEventListener('click', function() {
+          window.switchTab('media');
+      });
+    }
+
+    // Bind Drag & Drop
+    var dropzone = document.getElementById('uploadDropzone');
+    if (dropzone) {
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+          dropzone.addEventListener(eventName, e => {
+              e.preventDefault();
+              e.stopPropagation();
+          }, false);
+      });
+
+      ['dragenter', 'dragover'].forEach(eventName => {
+          dropzone.addEventListener(eventName, () => dropzone.classList.add('dragover'), false);
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+          dropzone.addEventListener(eventName, () => dropzone.classList.remove('dragover'), false);
+      });
+
+      dropzone.addEventListener('drop', e => {
+          var dt = e.dataTransfer;
+          var files = dt.files;
+          if (files && files[0]) {
+              window.handleImageUpload({ files: files });
+          }
+      }, false);
+    }
+
+    var btnSync = document.getElementById('btnRefreshData');
+    if (btnSync) {
+        btnSync.addEventListener('click', function() {
+            window.showToast('Synchronizing...', 'info');
+            loadProducts();
+            loadOrders();
+        });
+    }
     
     // Auto-refresh data every 30 seconds
     setInterval(function(){
@@ -76,79 +156,98 @@
   };
 
   function loadProducts() {
-    if(!window.backend) return;
+    if(!window.backend) {
+      console.warn('⚠️ Warning: Backend controller not found yet.');
+      return;
+    }
     window.backend.fetchProducts(true).then(function(fetched){
-      products = fetched;
+      products = fetched || [];
       renderProducts();
       renderDashboard();
+      console.log('✅ Dashboard synced: ' + products.length + ' products');
+    }).catch(function(err) {
+      console.error('❌ Data sync failed:', err);
+      window.showToast('Sync Failed: Check connection', 'error');
     });
   }
 
   function renderDashboard() {
-    var tp = document.getElementById('statTotalProducts'); if(tp) tp.textContent = products.length;
-    var to = document.getElementById('statTotalOrders'); if(to) to.textContent = orders.length;
+    var tp = document.getElementById('totalProducts'); if(tp) tp.textContent = products.length;
+    var to = document.getElementById('totalOrders'); if(to) to.textContent = orders.length;
     
     var rev = 0;
     for(var i=0; i<orders.length; i++) rev += (orders[i].total || 0);
-    var sr = document.getElementById('statRevenue'); if(sr) sr.textContent = '₹' + rev.toLocaleString();
+    var sr = document.getElementById('totalRevenue'); if(sr) sr.textContent = '₹' + rev.toLocaleString();
     
     var brands = {};
     for(var j=0; j<products.length; j++) { if(products[j].brand) brands[products[j].brand] = true; }
-    var sb = document.getElementById('statBrands'); if(sb) sb.textContent = Object.keys(brands).length;
+    var sb = document.getElementById('totalBrands'); if(sb) sb.textContent = Object.keys(brands).length;
 
     // Recent Products
     var recent = products.slice(0, 5);
-    var rCont = document.getElementById('recentProductsList');
+    var rCont = document.getElementById('recentProducts');
     if(rCont) {
       rCont.innerHTML = recent.map(function(p){
-        return '<div class="brand-item"><span>'+p.name+'</span><span class="brand-count">₹'+p.price+'</span></div>';
+        return '<div class="brand-item" style="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid #eee"><span>'+p.name+'</span><span class="brand-count" style="font-weight:700">₹'+p.price+'</span></div>';
       }).join('');
     }
 
     // Brands List
-    var bCont = document.getElementById('brandsList');
+    var bCont = document.getElementById('brandsListContainer');
     if(bCont) {
       bCont.innerHTML = Object.keys(brands).map(function(b){
-        return '<div class="brand-item"><span>'+b+'</span><i class="fas fa-check-circle" style="color:var(--success)"></i></div>';
+        return '<div class="brand-item" style="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid #eee"><span>'+b+'</span><i class="fas fa-check-circle" style="color:var(--success)"></i></div>';
       }).join('');
     }
   }
 
   function renderProducts() {
-    var container = document.getElementById('productsTableBody');
+    var container = document.getElementById('productsTable');
     if(!container) return;
+    
+    if (!products || products.length === 0) {
+      container.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#666">No products found in database.</td></tr>';
+      return;
+    }
+
     container.innerHTML = products.map(function(p) {
+      var pid = p.id || '';
       return '<tr>' +
-        '<td><img src="'+p.image+'" style="width:40px;height:50px;object-fit:cover;border-radius:4px"></td>' +
+        '<td><img src="'+(p.image || '')+'" onerror="this.src=\'https://via.placeholder.com/40\'" style="width:40px;height:50px;object-fit:cover;border-radius:4px"></td>' +
         '<td>'+p.name+'</td>' +
         '<td>'+(p.brand||'TN28')+'</td>' +
         '<td>'+p.category+'</td>' +
-        '<td>₹'+p.price+'</td>' +
+        '<td>₹'+(Number(p.price)||0).toLocaleString()+'</td>' +
         '<td>'+(p.stock||0)+'</td>' +
         '<td>' +
           '<div class="table-actions">' +
-            '<button class="btn-edit" onclick="window.editProduct('+p.id+')"><i class="fas fa-edit"></i></button>' +
-            '<button class="btn-delete" onclick="window.deleteProduct('+p.id+')"><i class="fas fa-trash"></i></button>' +
+            '<button class="btn-edit" onclick="window.editProduct(\''+pid+'\')"><i class="fas fa-edit"></i></button>' +
+            '<button class="btn-delete" onclick="window.deleteProduct(\''+pid+'\')"><i class="fas fa-trash"></i></button>' +
           '</div>' +
         '</td>' +
       '</tr>';
     }).join('');
   }
 
-  window.handleSaveProduct = function() {
+  window.handleSaveProduct = function(event) {
+    if (event && event.preventDefault) event.preventDefault();
+    
     var p = {
       id: document.getElementById('editId').value,
       name: document.getElementById('pName').value,
       brand: document.getElementById('pBrand').value,
       category: document.getElementById('pCategory').value,
       price: document.getElementById('pPrice').value,
+      originalPrice: document.getElementById('pOriginalPrice').value,
       stock: document.getElementById('pStock').value,
-      description: document.getElementById('pDesc').value,
+      fabric: document.getElementById('pFabric').value,
+      description: document.getElementById('pDescription').value,
       image: document.getElementById('pImage').value,
-      sizes: document.getElementById('pSizes').value.split(',').map(function(s){return s.trim();}),
-      isNew: document.getElementById('pNew').checked,
-      isSale: document.getElementById('pSale').checked,
-      isHot: document.getElementById('pHot').checked
+      sizes: document.getElementById('pSizes').value.split(',').map(function(s){return s.trim();}).filter(Boolean),
+      colors: document.getElementById('pColors').value.split(',').map(function(s){return s.trim();}).filter(Boolean),
+      isNew: document.getElementById('pIsNew').checked,
+      isSale: document.getElementById('pIsSale').checked,
+      isHot: document.getElementById('pIsHot').checked
     };
 
     if(!p.name || !p.price) { window.showToast('Name and Price required', 'error'); return; }
@@ -157,7 +256,12 @@
       window.showToast('Product Saved Successfully', 'success');
       loadProducts();
       window.switchTab('products');
-    }).catch(function(err){ window.showToast('Save failed: ' + err.message, 'error'); });
+    }).catch(function(err){ 
+      console.error('Save failed:', err);
+      // Added high-visibility alert for debugging
+      alert('❌ FAILED TO SAVE: ' + (err.message || JSON.stringify(err)));
+      window.showToast('Save failed: ' + (err.message || 'Check console'), 'error'); 
+    });
   };
 
   window.editProduct = function(id) {
@@ -168,13 +272,16 @@
     document.getElementById('pBrand').value = p.brand || '';
     document.getElementById('pCategory').value = p.category;
     document.getElementById('pPrice').value = p.price;
+    document.getElementById('pOriginalPrice').value = p.originalPrice || '';
     document.getElementById('pStock').value = p.stock || '';
-    document.getElementById('pDesc').value = p.description || '';
+    document.getElementById('pFabric').value = p.fabric || '';
+    document.getElementById('pDescription').value = p.description || '';
     document.getElementById('pImage').value = p.image;
     document.getElementById('pSizes').value = (p.sizes || []).join(', ');
-    document.getElementById('pNew').checked = p.isNew;
-    document.getElementById('pSale').checked = p.isSale;
-    document.getElementById('pHot').checked = p.isHot;
+    document.getElementById('pColors').value = (p.colors || []).join(', ');
+    document.getElementById('pIsNew').checked = p.isNew;
+    document.getElementById('pIsSale').checked = p.isSale;
+    document.getElementById('pIsHot').checked = p.isHot;
     
     document.getElementById('formTitle').textContent = 'Edit Product';
     if(p.image) {
@@ -196,23 +303,66 @@
   window.handleImageUpload = function(input) {
     var file = input.files[0];
     if(!file) return;
-    window.showToast('Uploading image...', 'info');
-    window.backend.uploadImage(file).then(function(url){
-      document.getElementById('pImage').value = url;
-      document.getElementById('previewImg').src = url;
-      document.getElementById('uploadPlaceholder').style.display='none';
-      document.getElementById('uploadPreview').style.display='block';
-      
-      // Save to media library
-      saveToMedia(url);
-    }).catch(function(err){ window.showToast('Upload failed', 'error'); });
+    
+    if (file.size > 2 * 1024 * 1024) {
+        window.showToast('Optimizing large image...', 'info');
+    } else {
+        window.showToast('Processing image...', 'info');
+    }
+
+    // Client-side resizing logic
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var img = new Image();
+        img.onload = function() {
+            var canvas = document.createElement('canvas');
+            var MAX_WIDTH = 800;
+            var MAX_HEIGHT = 1000;
+            var width = img.width;
+            var height = img.height;
+
+            if (width > height) {
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+            } else {
+                if (height > MAX_HEIGHT) {
+                    width *= MAX_HEIGHT / height;
+                    height = MAX_HEIGHT;
+                }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Get lower quality JPEG to save space
+            var dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            
+            // Now "upload" this optimized dataUrl
+            // Convert back to file if we want to use backend.uploadImage or just use dataUrl
+            // Since uploadImage has a Base64 fallback, we can just use the dataUrl directly if it fails storage
+            
+            // For now, let's try to pass the optimized file to uploadImage or just use it
+            document.getElementById('pImage').value = dataUrl;
+            document.getElementById('previewImg').src = dataUrl;
+            document.getElementById('uploadPlaceholder').style.display='none';
+            document.getElementById('uploadPreview').style.display='block';
+            window.showToast('Image optimized successfully', 'success');
+            saveToMedia(dataUrl);
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
   };
 
   window.clearImagePreview = function() {
     document.getElementById('uploadPlaceholder').style.display='block';
     document.getElementById('uploadPreview').style.display='none';
     document.getElementById('pImage').value = '';
-    document.getElementById('imageInput').value = '';
+    var input = document.getElementById('imageFileInput');
+    if (input) input.value = '';
   };
 
   window.showToast = function(msg, type) {
@@ -298,7 +448,8 @@
     }).join('');
   }
 
-  window.handleSaveOffer = function() {
+  window.handleSaveOffer = function(event) {
+    if (event && event.preventDefault) event.preventDefault();
     var idEl = document.getElementById('editOfferId');
     var o = {
       id: idEl ? idEl.value : '',

@@ -8,13 +8,13 @@
   <meta http-equiv="Expires" content="0">
   <!-- Force HTTPS Redirect for Data Security -->
   <script>
-    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1' && !location.hostname.startsWith('192.168.')) {
       location.replace(`https:${location.href.substring(location.protocol.length)}`);
     }
     // Hard Reset: Force fresh data across all sessions
     // Aggressive Cache Buster
-    if (!location.search.includes('v=7.0')) {
-      location.replace(location.pathname + '?v=7.0' + location.hash);
+    if (!location.search.includes('v=7.1')) {
+      location.replace(location.pathname + '?v=7.1' + location.hash);
     }
   </script>
   <title>TN28 Men's Fashion | Premium Menswear & Luxury Style</title>
@@ -28,8 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" type="image/jpeg" href="/assets/logo-4y5SkQaB.jpg">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <!-- Cloud Database Connectors (CDN Fallback) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
   <script>
@@ -68,6 +67,7 @@
       .qv-close { top: 15px; right: 15px; background: rgba(0,0,0,0.4); color: #fff; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
     }
   </style>
+  <link rel="stylesheet" crossorigin href="/assets/style-DKQ59nvN.css">
 </head>
 <body>
 
@@ -210,6 +210,9 @@
       <span>Scroll to explore</span>
     </div>
   </section>
+
+  <!-- ============ DYNAMIC OFFERS ============ -->
+  <div id="dynamicOfferContainer"></div>
 
   <!-- ============ CATEGORY ICONS ============ -->
   <section class="categories-strip" id="styles">
@@ -502,7 +505,8 @@
               <div class="form-group-p"><label>STATE</label><select id="coState" required><option value="Tamil Nadu">Tamil Nadu</option><option value="Kerala">Kerala</option><option value="Karnataka">Karnataka</option><option value="Andhra Pradesh">Andhra Pradesh</option></select></div>
             </div>
             <div class="form-group-p"><label>CITY / TOWN / DISTRICT</label><input type="text" id="coCity" placeholder="Enter city" required></div>
-            <div class="form-group-p"><label>FULL ADDRESS</label><textarea id="coAddress" placeholder="House No, Street Name, Landmark" required rows="3"></textarea></div>
+            <div class="form-group-p"><label>HOUSE NO, BLDG & STREET</label><textarea id="coAddress" placeholder="Door No, Building, Street Name" required rows="2"></textarea></div>
+            <div class="form-group-p"><label>LANDMARK (OPTIONAL)</label><input type="text" id="coLandmark" placeholder="E.g. Near Bus Stand, Opp. Bank"></div>
           </div>
           <button type="button" class="btn-checkout-next" style="background: var(--amazon-yellow); border: 1px solid #FCD200; color: #111; box-shadow: 0 2px 5px rgba(213,217,217,0.5);" onclick="nextStep('Review')">Deliver to this address</button>
         </form>
@@ -612,7 +616,7 @@
   <!-- ============ SCROLL TOP ============ -->
   <button class="scroll-top-btn" id="scrollTop"><i class="fas fa-arrow-up"></i></button>
 
-  <script src="backend-config.js?v=7.0"></script>
-  <script src="app-v7.js?v=7.0"></script>
+  <script src="backend-config.js?v=7.1"></script>
+  <script src="app-v7.js?v=7.1"></script>
 </body>
 </html>

@@ -299,6 +299,21 @@ input:focus { border-color: var(--primary); outline: none; }
   text-align: center;
 }
 
+.upload-dropzone {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 40px 20px;
+  background: #fff;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.upload-dropzone.dragover {
+  border-color: var(--primary-accent);
+  background: #FEF9C3;
+  transform: scale(0.99);
+}
+
 .preview-img { width: 100px; height: 130px; object-fit: cover; border-radius: 4px; box-shadow: var(--shadow); }
 
 .toast-container {
@@ -438,6 +453,7 @@ input:focus { border-color: var(--primary); outline: none; }
   .admin-layout { grid-template-columns: 1fr; }
   .sidebar { 
     position: fixed; 
+    top: auto;
     bottom: 0; 
     left: 0; 
     width: 100%; 

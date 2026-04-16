@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TN28 System Health Diagnostic</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 40px auto; padding: 20px; background: #f4f7f9; }
+        .card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h1 { color: #0f172a; margin-top: 0; display: flex; align-items: center; gap: 10px; }
+        .status-item { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #eee; }
+        .status-item:last-child { border-bottom: none; }
+        .label { font-weight: 600; color: #64748b; }
+        .value { font-weight: 700; }
+        .ok { color: #10b981; }
+        .fail { color: #ef4444; }
+        .loading { color: #f59e0b; }
+        .debug-box { background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 8px; margin-top: 30px; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 13px; overflow-x: auto; white-space: pre-wrap; }
+        .btn { background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 20px; }
+        .btn:hover { background: #2563eb; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="card">
+        <h1>🔍 TN28 System Diagnostic</h1>
+        <p>This tool will check your connection to the database and verify script availability.</p>
+        
+        <div id="statusList">
+            <div class="status-item"><span class="label">Browser Environment</span><span class="value ok" id="envStatus">Checking...</span></div>
+            <div class="status-item"><span class="label">Supabase Library</span><span class="value loading" id="libStatus">Waiting...</span></div>
+            <div class="status-item"><span class="label">Cloud Connectivity</span><span class="value loading" id="cloudStatus">Waiting...</span></div>
+            <div class="status-item"><span class="label">Database Products</span><span class="value loading" id="dbStatus">Waiting...</span></div>
+            <div class="status-item"><span class="label">Admin Auth Logic</span><span class="value loading" id="authStatus">Waiting...</span></div>
+        </div>
+
+        <button class="btn" onclick="runDiagnostic()">Run Full Check</button>
+
+        <div class="debug-box" id="debugLog">System initializing...</div>
+    </div>
+
+    <script src="backend-config.js?v=7.0"></script>
+    <script>
+        const log = (msg) => {
+            const el = document.getElementById('debugLog');
+            el.innerHTML += '\n[' + new Date().toLocaleTimeString() + '] ' + msg;
+            console.log(msg);
+        };
+
+        async function runDiagnostic() {
+            log('Starting diagnostic...');
+            
+            // 1. Library check
+            if (window.supabase) {
+                document.getElementById('libStatus').innerText = 'Loaded (v' + (window.supabase.version || '2.x') + ')';
+                document.getElementById('libStatus').className = 'value ok';
+                log('✅ Supabase JS Library found.');
+            } else {
+                document.getElementById('libStatus').innerText = 'MISSING';
+                document.getElementById('libStatus').className = 'value fail';
+                log('❌ Supabase JS Library NOT loaded. Check your internet or CDN blockage.');
+            }
+
+            // 2. Connectivity Check
+            try {
+                const response = await fetch('https://orzhjgrjpxrlikswwenc.supabase.co', { mode: 'no-cors' });
+                document.getElementById('cloudStatus').innerText = 'Reachable';
+                document.getElementById('cloudStatus').className = 'value ok';
+                log('✅ Cloud URL reachable.');
+            } catch (e) {
+                document.getElementById('cloudStatus').innerText = 'Blocked / Unavailable';
+                document.getElementById('cloudStatus').className = 'value fail';
+                log('❌ Could not reach Supabase endpoint. Likely a network/ISP block.');
+            }
+
+            // 3. Database Check
+            if (window.backend && window.backend.fetchProducts) {
+                log('Attempting to fetch products...');
+                window.backend.fetchProducts(true).then(data => {
+                    log('✅ Products fetched successfully: ' + data.length + ' items found.');
+                    document.getElementById('dbStatus').innerText = data.length + ' Products Found';
+                    document.getElementById('dbStatus').className = 'value ok';
+                }).catch(err => {
+                    log('❌ Fetch failed: ' + JSON.stringify(err));
+                    document.getElementById('dbStatus').innerText = 'Fetch Failed';
+                    document.getElementById('dbStatus').className = 'value fail';
+                    if (err.message && err.message.includes('apiKey')) log('💡 TIP: Your Supabase Key might be invalid or restricted.');
+                });
+            } else {
+                document.getElementById('dbStatus').innerText = 'Backend Logic Missing';
+                document.getElementById('dbStatus').className = 'value fail';
+                log('❌ backend-config.js not loaded or broken.');
+            }
+
+            // 4. Auth State
+            const auth = sessionStorage.getItem('tn28_admin_auth');
+            document.getElementById('authStatus').innerText = auth === 'true' ? 'Logged In' : 'Not Logged In';
+            document.getElementById('authStatus').className = 'value ok';
+            log('Current Admin Auth State: ' + auth);
+        }
+
+        window.onload = () => {
+            document.getElementById('envStatus').innerText = 'Ready';
+            document.getElementById('debugLog').innerText = 'Diagnostic ready. Click button to begin.';
+        };
+    </script>
+</body>
+</html>

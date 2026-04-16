@@ -145,20 +145,21 @@ window.backend = {
 
   fetchOffers: function() {
     var client = getSupabase();
-    if (!client) return { then: function(cb){ cb([]); } };
+    if (!client) {
+        var localOffers = JSON.parse(localStorage.getItem('tn28_offers') || '[]');
+        return { then: function(cb){ cb(localOffers); } };
+    }
     return client.from('offers').select('*').order('created_at', { ascending: false }).then(function(res) {
       if (res.error) {
-        console.error('❌ Supabase Offers Fetch Error:', res.error);
-        return [];
+        console.warn('⚠️ Supabase Offers Fetch Error (Table might not exist):', res.error.message);
+        var localOffers = JSON.parse(localStorage.getItem('tn28_offers') || '[]');
+        return localOffers;
       }
       return res.data || [];
     });
   },
 
   saveOffer: function(offer) {
-    var client = getSupabase();
-    if (!client) return Promise.reject('No Supabase client');
-    
     var payload = {
       title: offer.title,
       discount: Number(offer.discount),
@@ -166,19 +167,55 @@ window.backend = {
       expiry: offer.expiry || null,
       description: offer.description || '',
       image: offer.image || '',
-      active: offer.active !== false
+      active: offer.active !== false,
+      created_at: new Date().toISOString()
     };
     if (offer.id) payload.id = Number(offer.id);
+
+    var client = getSupabase();
+    if (!client) {
+      return new Promise(function(resolve) {
+          var localOffers = JSON.parse(localStorage.getItem('tn28_offers') || '[]');
+          if (!payload.id) payload.id = Date.now();
+          var existingIdx = localOffers.findIndex(function(o) { return o.id == payload.id; });
+          if(existingIdx >= 0) localOffers[existingIdx] = payload;
+          else localOffers.push(payload);
+          localStorage.setItem('tn28_offers', JSON.stringify(localOffers));
+          resolve(payload);
+      });
+    }
     
     return client.from('offers').upsert(payload).select().then(function(res) {
-      if (res.error) throw res.error;
+      if (res.error) {
+          console.warn('⚠️ Fallback to localStorage due to Supabase error:', res.error.message);
+          var localOffers = JSON.parse(localStorage.getItem('tn28_offers') || '[]');
+          if (!payload.id) payload.id = Date.now();
+          var existingIdx = localOffers.findIndex(function(o) { return o.id == payload.id; });
+          if(existingIdx >= 0) localOffers[existingIdx] = payload;
+          else localOffers.push(payload);
+          localStorage.setItem('tn28_offers', JSON.stringify(localOffers));
+          return payload;
+      }
       return res.data[0];
     });
   },
 
   deleteOffer: function(id) {
     var client = getSupabase();
-    if (!client) return Promise.reject('No Supabase client');
-    return client.from('offers').delete().eq('id', id);
+    
+    // First remove from localStorage
+    var localOffers = JSON.parse(localStorage.getItem('tn28_offers') || '[]');
+    var newLocal = localOffers.filter(function(o) { return o.id != id; });
+    localStorage.setItem('tn28_offers', JSON.stringify(newLocal));
+    
+    if (!client) {
+      return new Promise(function(resolve) { resolve(true); });
+    }
+    return client.from('offers').delete().eq('id', id).then(function(res) {
+        if (res.error) {
+            console.warn("Could not delete from Supabase (table might not exist)");
+        }
+        return true;
+    });
   }
 };

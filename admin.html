@@ -9,20 +9,21 @@
   <title>TN28 Admin Panel - Product Management</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // Aggressive Cache Buster for Admin
-    if (!location.search.includes('v=7.0')) {
-      location.replace(location.pathname + '?v=7.0' + location.hash);
+    if (!location.search.includes('v=7.2')) {
+      location.replace(location.pathname + '?v=7.2' + location.hash);
     }
     // Force a fresh state for Admin
     localStorage.removeItem('tn28_products');
     sessionStorage.removeItem('tn28_admin_auth'); // Optional: force re-login if needed
     console.log('🛡️ Admin Sync Reinforced');
   </script>
+  <link rel="stylesheet" crossorigin href="/assets/admin-Dbvfnyum.css">
 </head>
+<body>
   <!-- Security Gate (Hidden initially) -->
   <div id="adminGate" class="admin-gate">
     <div class="gate-card">
@@ -149,7 +150,7 @@
               <div class="form-group"><label class="checkbox-wrap"><input type="checkbox" id="pIsHot"> Hot / Trending</label></div>
             </div>
             <div class="form-actions">
-              <button type="submit" class="btn-admin btn-primary-admin"><i class="fas fa-save"></i> Save Product</button>
+              <button type="button" class="btn-admin btn-primary-admin" id="btnSaveProduct" onclick="handleSaveProduct(event)"><i class="fas fa-save"></i> Save Product</button>
               <button type="button" class="btn-admin btn-secondary" onclick="resetForm()"><i class="fas fa-times"></i> Cancel</button>
             </div>
           </form>
@@ -217,7 +218,7 @@
                 <div class="form-group" style="display:flex; align-items:flex-end; padding-bottom:10px;"><label class="checkbox-wrap"><input type="checkbox" id="offerActive" checked> Active</label></div>
               </div>
               <div class="form-actions" style="margin-top:20px;">
-                <button type="button" class="btn-admin btn-primary-admin" onclick="window.handleSaveOffer()"><i class="fas fa-save"></i> Save Offer</button>
+                <button type="button" class="btn-admin btn-primary-admin" id="btnSaveOffer" onclick="handleSaveOffer(event)"><i class="fas fa-save"></i> Save Offer</button>
                 <button type="button" class="btn-admin btn-secondary" onclick="window.resetOfferForm(); document.getElementById('offerFormCard').style.display='none';"><i class="fas fa-times"></i> Cancel</button>
               </div>
             </form>
@@ -248,7 +249,7 @@
 
   <!-- Toast -->
   <div class="toast-container" id="adminToast"></div>
-  <script src="backend-config.js?v=7.0"></script>
-  <script src="admin-v7.js?v=7.0"></script>
+  <script src="backend-config.js?v=7.2"></script>
+  <script src="admin-v7.js?v=7.2"></script>
 </body>
 </html>

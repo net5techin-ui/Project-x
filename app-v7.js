@@ -13,6 +13,7 @@
   var heroSlideIndex = 0;
   var heroInterval = null;
   var selectedPaymentMethod = 'phonepe';
+  window.offers = []; // ADDED: Offers state
   
   // Global Error Logger for diagnostics
   window.onerror = function(msg, url, line) {
@@ -128,6 +129,14 @@
     }).catch(function(e){ console.error('Sync failed', e); });
   };
 
+  window.handleLoadOffers = function() {
+    if (!window.backend || !window.backend.fetchOffers) return;
+    window.backend.fetchOffers().then(function(fetched) {
+      window.offers = fetched || [];
+      window.renderOffers();
+    }).catch(function(e){ console.error('Offers fetch failed', e); });
+  };
+
   // --- INITIALIZATION ---
   window.initApp = function() {
     if (window.appInitialized) return;
@@ -144,6 +153,7 @@
     
     window.renderAll('all');
     window.handleLoadProducts(true);
+    window.handleLoadOffers(); // ADDED: load offers
     
     // Explicitly check for backend
     if (!window.backend) {
@@ -624,5 +634,45 @@
     document.addEventListener('DOMContentLoaded', window.initApp);
   }
 
-  window.renderOffers = function() { /* Standardized static display */ };
+  window.renderOffers = function() {
+    var c = document.getElementById('dynamicOfferContainer');
+    if (!c) return;
+    if (!window.offers || window.offers.length === 0) {
+      c.innerHTML = '';
+      return;
+    }
+    
+    var html = '<section class="section" style="background:#fefce8; padding:40px 0; margin-bottom: 30px;"><div class="container">';
+    html += '<h2 style="text-align:center; margin-bottom: 30px; font-family:\'Playfair Display\', serif;">Active Offers</h2>';
+    html += '<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">';
+    
+    var activeOffers = window.offers.filter(function(o){ return o.active !== false; });
+    
+    for(var i=0; i<activeOffers.length; i++) {
+        var o = activeOffers[i];
+        html += '<div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; display:flex; flex-direction:column;">';
+        if (o.image) {
+            html += '<img src="'+o.image+'" style="width:100%; height:160px; object-fit:cover;" onerror="this.style.display=\'none\'">';
+        } else {
+            html += '<div style="width:100%; height:10px; background:var(--amazon-yellow);"></div>';
+        }
+        html += '<div style="padding: 20px; flex: 1; display:flex; flex-direction:column;">';
+        html += '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">';
+        html += '<h3 style="margin:0; font-size:18px; color:var(--navy);">'+o.title+'</h3>';
+        if (o.discount) html += '<span style="background:#ef4444; color:white; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:14px;">'+o.discount+'% OFF</span>';
+        html += '</div>';
+        if (o.description) html += '<p style="margin:0 0 15px; color:#475569; font-size:14px; flex:1;">'+o.description+'</p>';
+        html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; border-top:1px dashed #cbd5e1; padding-top:15px;">';
+        if (o.code) {
+            html += '<div style="font-size:12px; color:#64748b;">USE CODE: <br><strong style="color:var(--navy); font-size:16px;">'+o.code+'</strong></div>';
+        } else {
+            html += '<div></div>'; 
+        }
+        if (o.expiry) html += '<div style="font-size:12px; color:#ef4444;">Valid till<br><strong>'+o.expiry+'</strong></div>';
+        html += '</div></div></div>';
+    }
+    
+    html += '</div></div></section>';
+    c.innerHTML = html;
+  };
 })();
