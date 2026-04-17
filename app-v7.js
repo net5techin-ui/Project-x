@@ -93,7 +93,7 @@
       var name = product.name || 'Premium Item';
       var image = (product.image || 'https://placehold.co/400x500?text=TN28+Fashion').split(',')[0].trim();
       
-      var html = '<div class="product-card reveal" data-id="'+pid+'">';
+      var html = '<div class="product-card active" data-id="'+pid+'">';
       html += '<div class="product-image" data-action="quickview">';
       html += '<img src="'+image+'" alt="'+name+'" onerror="this.src=\'https://placehold.co/400x500?text=Image+Loading...\'" loading="lazy">';
       html += '<div class="product-badges">';
