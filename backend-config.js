@@ -211,11 +211,19 @@ window.backend = {
     if (!client) {
       return new Promise(function(resolve) { resolve(true); });
     }
-    return client.from('offers').delete().eq('id', id).then(function(res) {
-        if (res.error) {
-            console.warn("Could not delete from Supabase (table might not exist)");
+    
+    try {
+        if (!id || id === 'undefined') {
+            return Promise.resolve(true); // handled locally, safely return 
         }
-        return true;
-    });
+        return client.from('offers').delete().eq('id', id).then(function(res) {
+            if (res.error) console.warn("Could not delete from Supabase");
+            return true;
+        }).catch(function(err){
+            return true;
+        });
+    } catch(e) {
+        return Promise.resolve(true);
+    }
   }
 };

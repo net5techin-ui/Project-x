@@ -13,13 +13,13 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // Aggressive Cache Buster for Admin
-    if (!location.search.includes('v=7.2')) {
-      location.replace(location.pathname + '?v=7.2' + location.hash);
+    if (!location.search.includes('v=7.4')) {
+      location.replace(location.pathname + '' + location.hash);
     }
     // Force a fresh state for Admin
     localStorage.removeItem('tn28_products');
     sessionStorage.removeItem('tn28_admin_auth'); // Optional: force re-login if needed
-    console.log('🛡️ Admin Sync Reinforced');
+    console.log('Admin Sync Reinforced');
   </script>
   <link rel="stylesheet" crossorigin href="/assets/admin-Dbvfnyum.css">
 </head>
@@ -52,9 +52,10 @@
         <a href="#" class="nav-item" data-tab="orders"><i class="fas fa-shopping-basket"></i> Orders</a>
         <a href="#" class="nav-item" data-tab="media"><i class="fas fa-images"></i> Media Library</a>
         <a href="#" class="nav-item" data-tab="offers"><i class="fas fa-percent"></i> Offers</a>
+        <a href="#" class="nav-item" data-tab="live-view"><i class="fas fa-external-link-alt"></i> Live Preview</a>
       </nav>
       <div class="sidebar-footer">
-        <a href="index.html" class="view-store-link"><i class="fas fa-store"></i> View Store</a>
+        <a href="index.html" target="_blank" class="view-store-link"><i class="fas fa-store"></i> View Store</a>
       </div>
     </aside>
 
@@ -76,7 +77,7 @@
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-icon" style="background:#e8f4fd;color:#2196F3"><i class="fas fa-box"></i></div><div><h3 id="totalProducts">0</h3><p>Total Products</p></div></div>
         <div class="stat-card"><div class="stat-icon" style="background:#e8f5e9;color:#4CAF50"><i class="fas fa-shopping-cart"></i></div><div><h3 id="totalOrders">0</h3><p>Total Orders</p></div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#fff3e0;color:#FF9800"><i class="fas fa-rupee-sign"></i></div><div><h3 id="totalRevenue">₹0</h3><p>Revenue</p></div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#fff3e0;color:#FF9800"><i class="fas fa-rupee-sign"></i></div><div><h3 id="totalRevenue">0</h3><p>Revenue</p></div></div>
         <div class="stat-card"><div class="stat-icon" style="background:#fce4ec;color:#E91E63"><i class="fas fa-tags"></i></div><div><h3 id="totalBrands">0</h3><p>Brands</p></div></div>
       </div>
 
@@ -102,44 +103,66 @@
           <h3 id="formTitle">Add New Product</h3>
           <form id="productForm" class="product-form">
             <input type="hidden" id="editId">
-            <input type="hidden" id="pImage" value="">
-
-            <!-- Image Upload Section -->
+            <!-- Image Upload Section  4 Photos with Browse + Preview -->
             <div class="image-upload-section">
-              <label class="upload-label"><i class="fas fa-camera"></i> Product Image *</label>
-              <div class="upload-wrapper">
-                <div class="upload-dropzone" id="uploadDropzone">
-                  <div class="upload-placeholder" id="uploadPlaceholder">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <h4>Drag & Drop your image here</h4>
-                    <p>or click to browse files</p>
-                    <span class="upload-formats">Supports: JPG, PNG, WebP (Max 5MB)</span>
-                  </div>
-                  <div class="upload-preview" id="uploadPreview" style="display:none">
-                    <img src="" alt="Preview" id="previewImg">
-                    <button type="button" class="preview-remove" id="removeImage" title="Remove image"><i class="fas fa-times"></i></button>
-                    <div class="preview-info" id="previewInfo"></div>
-                  </div>
-                  <input type="file" id="imageFileInput" accept="image/jpeg,image/png,image/webp" style="display:none">
+              <label class="upload-label"><i class="fas fa-camera"></i> Product Images (Up to 4)</label>
+              <input type="hidden" id="pImage" value="">
+              
+              <!-- Hidden file inputs for each photo slot -->
+              <input type="file" id="imageFileInput" accept="image/jpeg,image/png,image/webp" style="display:none">
+              <input type="file" id="imageFileInput2" accept="image/jpeg,image/png,image/webp" style="display:none">
+              <input type="file" id="imageFileInput3" accept="image/jpeg,image/png,image/webp" style="display:none">
+              <input type="file" id="imageFileInput4" accept="image/jpeg,image/png,image/webp" style="display:none">
+
+              <!-- Photo 1: Main -->
+              <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:14px;margin-bottom:10px;">
+                <label style="font-size:12px;font-weight:700;color:#0F172A;display:block;margin-bottom:6px;"> Photo 1 (Main) *</label>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <input type="url" id="pImageUrl" placeholder="Paste image URL or Browse" class="url-input" style="flex:1;">
+                  <button type="button" class="btn-admin btn-upload" onclick="document.getElementById('imageFileInput').click();" style="white-space:nowrap;"><i class="fas fa-folder-open"></i> Browse</button>
                 </div>
-                <div class="upload-actions">
-                  <button type="button" class="btn-admin btn-upload" id="btnBrowse"><i class="fas fa-folder-open"></i> Browse Files</button>
-                  <button type="button" class="btn-admin btn-upload" id="btnMediaLib"><i class="fas fa-images"></i> Media Library</button>
-                  <div class="upload-or"><span>or paste URL</span></div>
-                  <div class="url-input-wrap">
-                    <input type="url" id="pImageUrl" placeholder="https://example.com/image.jpg" class="url-input">
-                    <button type="button" class="btn-admin btn-url-load" id="btnLoadUrl"><i class="fas fa-link"></i></button>
-                  </div>
+              </div>
+
+              <!-- Photo 2 -->
+              <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:14px;margin-bottom:10px;">
+                <label style="font-size:12px;font-weight:700;color:#0F172A;display:block;margin-bottom:6px;"> Photo 2 (Optional)</label>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <input type="url" id="pImageUrl2" placeholder="Paste image URL or Browse" class="url-input" style="flex:1;">
+                  <button type="button" class="btn-admin btn-upload" onclick="document.getElementById('imageFileInput2').click();" style="white-space:nowrap;"><i class="fas fa-folder-open"></i> Browse</button>
                 </div>
+              </div>
+
+              <!-- Photo 3 -->
+              <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:14px;margin-bottom:10px;">
+                <label style="font-size:12px;font-weight:700;color:#0F172A;display:block;margin-bottom:6px;"> Photo 3 (Optional)</label>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <input type="url" id="pImageUrl3" placeholder="Paste image URL or Browse" class="url-input" style="flex:1;">
+                  <button type="button" class="btn-admin btn-upload" onclick="document.getElementById('imageFileInput3').click();" style="white-space:nowrap;"><i class="fas fa-folder-open"></i> Browse</button>
+                </div>
+              </div>
+
+              <!-- Photo 4 -->
+              <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:14px;margin-bottom:10px;">
+                <label style="font-size:12px;font-weight:700;color:#0F172A;display:block;margin-bottom:6px;"> Photo 4 (Optional)</label>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <input type="url" id="pImageUrl4" placeholder="Paste image URL or Browse" class="url-input" style="flex:1;">
+                  <button type="button" class="btn-admin btn-upload" onclick="document.getElementById('imageFileInput4').click();" style="white-space:nowrap;"><i class="fas fa-folder-open"></i> Browse</button>
+                </div>
+              </div>
+
+              <!-- Live Image Preview Gallery -->
+              <div id="imagePreviewGallery" style="display:none;background:#F1F5F9;border:2px dashed #CBD5E1;border-radius:12px;padding:16px;margin-top:12px;">
+                <label style="font-size:12px;font-weight:700;color:#475569;display:block;margin-bottom:10px;"><i class="fas fa-eye"></i> Image Preview</label>
+                <div id="imagePreviewStrip" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;"></div>
               </div>
             </div>
 
             <div class="form-grid">
               <div class="form-group"><label>Product Name *</label><input type="text" id="pName" required placeholder="e.g. Slim Fit Formal Shirt"></div>
               <div class="form-group"><label>Brand *</label><input type="text" id="pBrand" required placeholder="e.g. Urban Design" list="brandsList"><datalist id="brandsList"><option value="Urban Design"><option value="Some"><option value="U-Casuals"><option value="Jungle-jeans"><option value="WallPlus"><option value="Haestor"></datalist></div>
-              <div class="form-group"><label>Category *</label><select id="pCategory" required><option value="formal">Formal</option><option value="casual">Casual</option><option value="party">Party Wear</option></select></div>
-              <div class="form-group"><label>Price (₹) *</label><input type="number" id="pPrice" required min="0" placeholder="1999"></div>
-              <div class="form-group"><label>Original Price (₹)</label><input type="number" id="pOriginalPrice" min="0" placeholder="2999"></div>
+              <div class="form-group"><label>Category *</label><select id="pCategory" required><option value="formal">Formal</option><option value="casual">Casual</option><option value="party">Party Wear</option><option value="club">Club Wear</option><option value="sports">Sports Wear</option></select></div>
+              <div class="form-group"><label>Price () *</label><input type="number" id="pPrice" required min="0" placeholder="1999"></div>
+              <div class="form-group"><label>Original Price ()</label><input type="number" id="pOriginalPrice" min="0" placeholder="2999"></div>
               <div class="form-group"><label>Stock Quantity *</label><input type="number" id="pStock" required min="0" placeholder="50"></div>
               <div class="form-group"><label>Fabric / Material</label><input type="text" id="pFabric" placeholder="e.g. Premium Cotton"></div>
               <div class="form-group"><label>Sizes (comma separated) *</label><input type="text" id="pSizes" required placeholder="S, M, L, XL"></div>
@@ -244,12 +267,18 @@
           </div>
         </div>
       </div>
+      <!-- Live Preview Tab -->
+      <div class="tab-content" id="tab-live-view" style="height: calc(100vh - 160px);">
+        <div class="card" style="height:100%; padding:0; overflow:hidden;">
+          <iframe src="index.html" style="width:100%; height:100%; border:none;"></iframe>
+        </div>
+      </div>
     </main>
   </div>
 
   <!-- Toast -->
   <div class="toast-container" id="adminToast"></div>
-  <script src="backend-config.js?v=7.2"></script>
-  <script src="admin-v7.js?v=7.2"></script>
+  <script src="backend-config.js"></script>
+  <script src="admin-v7.js"></script>
 </body>
 </html>

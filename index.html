@@ -13,8 +13,8 @@
     }
     // Hard Reset: Force fresh data across all sessions
     // Aggressive Cache Buster
-    if (!location.search.includes('v=7.5')) {
-      location.replace(location.pathname + '?v=7.5' + location.hash);
+    if (!location.search.includes('v=7.7')) {
+      location.replace(location.pathname + '' + location.hash);
     }
   </script>
   <title>TN28 Men's Fashion | Premium Menswear & Luxury Style</title>
@@ -55,6 +55,14 @@
     .search-result-price { font-weight: 600; font-size: 13px; color: #C8A96E; }
     .qv-original { text-decoration: line-through; color: #94A3B8; font-size: 16px; margin-left: 10px; }
     .size-option.active { background: #0F172A; color: #fff; border-color: #0F172A; }
+    
+    .qv-thumbnails { display: flex; gap: 8px; margin-top: 12px; justify-content: center; width: 100%; }
+    .qv-thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+    .qv-thumb.active { border-color: #0F172A; }
+    
+    .qv-zoom-wrap { overflow: hidden; border-radius: 12px; width: 100%; height: auto; }
+    #qvImage { transition: transform 0.3s ease; cursor: zoom-in; width: 100%; display: block; }
+    #qvImage:hover { transform: scale(1.4); }
 
     /* Mobile Modal Overrides */
     @media (max-width: 768px) {
@@ -67,7 +75,7 @@
       .qv-close { top: 15px; right: 15px; background: rgba(0,0,0,0.4); color: #fff; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
     }
   </style>
-  <link rel="stylesheet" crossorigin href="/assets/style-DKQ59nvN.css">
+  <link rel="stylesheet" crossorigin href="/assets/style-D7ktjHA9.css">
 </head>
 <body>
 
@@ -77,16 +85,16 @@
   <div class="announcement-bar" id="announcementBar">
     <div class="announcement-scroll">
       <span><i class="fas fa-gem"></i> PREMIUM MEN'S FASHION</span>
-      <span class="ann-dot">★</span>
-      <span><i class="fas fa-truck"></i> FREE SHIPPING ABOVE ₹999</span>
-      <span class="ann-dot">★</span>
-      <span><i class="fas fa-tag"></i> USE CODE <strong>TN28FIRST</strong> — 15% OFF</span>
-      <span class="ann-dot">★</span>
+      <span class="ann-dot"></span>
+      <span><i class="fas fa-truck"></i> FREE SHIPPING ABOVE 999</span>
+      <span class="ann-dot"></span>
+      <span><i class="fas fa-tag"></i> USE CODE <strong>TN28FIRST</strong>  15% OFF</span>
+      <span class="ann-dot"></span>
       <span><i class="fas fa-undo"></i> 30-DAY EASY RETURNS</span>
-      <span class="ann-dot">★</span>
+      <span class="ann-dot"></span>
       <span><i class="fas fa-gem"></i> PREMIUM MEN'S FASHION</span>
-      <span class="ann-dot">★</span>
-      <span><i class="fas fa-truck"></i> FREE SHIPPING ABOVE ₹999</span>
+      <span class="ann-dot"></span>
+      <span><i class="fas fa-truck"></i> FREE SHIPPING ABOVE 999</span>
     </div>
   </div>
 
@@ -151,6 +159,7 @@
             <a href="#featured" onclick="filterByCategory('party')">Party Wear</a>
 
             <a href="#featured" onclick="filterByCategory('sports')">Sports Wear</a>
+            <a href="#featured" onclick="filterByCategory('club')">Club Wear</a>
           </div>
         </li>
         <li><a href="#featured" class="nav-link">Collection</a></li>
@@ -171,6 +180,7 @@
       <li><a href="#new-arrivals">New Arrivals</a></li>
       <li><a href="#brands">Brands</a></li>
       <li><a href="#styles">Shop by Style</a></li>
+      <li><a href="#featured" onclick="filterByCategory('club')">Club Wear</a></li>
       <li><a href="#featured">Collection</a></li>
       <li><a href="#offers">Offers</a></li>
     </ul>
@@ -234,6 +244,10 @@
           <div class="cat-icon-circle"><i class="fas fa-running"></i></div>
           <span>Sports</span>
         </div>
+        <div class="cat-icon-item reveal" onclick="filterByCategory('club')">
+          <div class="cat-icon-circle"><i class="fas fa-music"></i></div>
+          <span>Club</span>
+        </div>
         <div class="cat-icon-item reveal" onclick="filterByCategory('all')">
           <div class="cat-icon-circle"><i class="fas fa-th-large"></i></div>
           <span>All</span>
@@ -273,7 +287,7 @@
       <div class="style-banner-text">
         <span class="style-tag">MEN'S EXCLUSIVE</span>
         <h2>Dress to <span class="text-gradient">Impress</span></h2>
-        <p>From boardroom to party — we've got every look covered. Premium fabrics, expert tailoring, unbeatable prices.</p>
+        <p>From boardroom to party  we've got every look covered. Premium fabrics, expert tailoring, unbeatable prices.</p>
         <a href="#featured" class="btn-hero-primary"><i class="fas fa-fire"></i> EXPLORE COLLECTION</a>
       </div>
       <div class="style-banner-images">
@@ -310,9 +324,6 @@
       </div>
     </div>
   </section>
-
-
-
   <!-- ============ FEATURED PRODUCTS ============ -->
   <section class="section" id="featured">
     <div class="container">
@@ -325,17 +336,14 @@
         <button class="filter-btn active" data-filter="all">All</button>
         <button class="filter-btn" data-filter="formal">Formal</button>
         <button class="filter-btn" data-filter="casual">Casual</button>
-
-        <button class="filter-btn" data-filter="party">Party</button>
+        <button class="filter-btn" data-filter="party">Party Wear</button>
+        <button class="filter-btn" data-filter="club">Club Wear</button>
+        <button class="filter-btn" data-filter="sports">Sports Wear</button>
       </div>
       <div class="products-grid" id="featuredGrid"></div>
       <div class="section-cta"><a href="#" class="btn-dark">VIEW ALL PRODUCTS</a></div>
     </div>
   </section>
-
-  <!-- ============ SALE PRODUCTS ============ -->
-
-
   <!-- ============ NEWSLETTER ============ -->
   <section class="newsletter-section">
     <div class="container">
@@ -421,6 +429,7 @@
         <div class="footer-links">
           <a href="#home">Privacy Policy</a>
           <a href="#home">Terms of Service</a>
+          <a href="admin.html" class="admin-link-footer"><i class="fas fa-user-shield"></i> Admin Portal</a>
         </div>
         <div class="payment-icons">
           <i class="fab fa-cc-visa"></i><i class="fab fa-cc-mastercard"></i><i class="fab fa-cc-paypal"></i><i class="fab fa-google-pay"></i><i class="fab fa-apple-pay"></i>
@@ -436,7 +445,7 @@
     <div class="cart-empty" id="cartEmpty"><i class="fas fa-shopping-bag"></i><p>Your cart is empty</p><a href="#featured" class="btn-dark">Continue Shopping</a></div>
     <div class="cart-items" id="cartItems"></div>
     <div class="cart-footer" id="cartFooter" style="display:none;">
-      <div class="cart-total"><span>Subtotal</span><span id="cartTotal">₹0</span></div>
+      <div class="cart-total"><span>Subtotal</span><span id="cartTotal">0</span></div>
       <p class="cart-note">Shipping & taxes calculated at checkout</p>
       <button class="btn-checkout" id="checkoutBtn">CHECKOUT</button>
       <a href="#featured" class="btn-continue">CONTINUE SHOPPING</a>
@@ -448,14 +457,19 @@
   <div class="modal quick-view-modal" id="quickViewModal">
     <button class="modal-close-btn" id="closeQuickView"><i class="fas fa-times"></i></button>
     <div class="qv-content">
-      <div class="qv-image"><img src="" alt="" id="qvImage"></div>
+      <div class="qv-image">
+        <div class="qv-zoom-wrap">
+          <img src="" alt="" id="qvImage">
+        </div>
+        <div class="qv-thumbnails" id="qvThumbnails"></div>
+      </div>
       <div class="qv-details">
         <span class="qv-brand" id="qvBrand"></span>
         <h2 class="qv-name" id="qvName"></h2>
         <div class="qv-price-row"><span class="qv-price" id="qvPrice"></span><span class="qv-original" id="qvOriginal"></span></div>
         <p class="qv-desc" id="qvDescription"></p>
         <div class="qv-sizes"><span class="qv-label">Size:</span><div class="size-options" id="qvSizes"></div></div>
-        <div class="qv-qty"><span class="qv-label">Qty:</span><div class="qty-selector"><button class="qty-btn" id="qvQtyMinus">−</button><input type="number" value="1" min="1" max="10" id="qvQty"><button class="qty-btn" id="qvQtyPlus">+</button></div></div>
+        <div style="display:none;" class="qv-qty"><span class="qv-label">Qty:</span><div class="qty-selector"><button class="qty-btn" id="qvQtyMinus"></button><input type="number" value="1" min="1" max="10" id="qvQty"><button class="qty-btn" id="qvQtyPlus">+</button></div></div>
         <div class="qv-actions">
           <button class="btn-add-cart" id="qvAddToCart" onclick="addToCartFromQuickView()"><i class="fas fa-shopping-bag"></i> ADD TO CART</button>
           <button class="btn-buy-now-qv" id="qvBuyNow" onclick="buyNowFromQuickView()"><i class="fas fa-bolt"></i> BUY NOW</button>
@@ -518,10 +532,10 @@
           <div style="font-size: 14px; font-weight: 700; margin-bottom: 12px; padding: 0 0 8px; border-bottom: 1px solid var(--bg);">Review your items and shipping</div>
           <div id="checkoutOrderItems"></div>
           <div class="co-totals-p">
-             <div class="co-row-p"><span>Items:</span><span id="coSubtotal">₹0</span></div>
-             <div class="co-row-p"><span>Shipping & handling:</span><span id="coShipping">₹0</span></div>
+             <div class="co-row-p"><span>Items:</span><span id="coSubtotal">0</span></div>
+             <div class="co-row-p"><span>Shipping & handling:</span><span id="coShipping">0</span></div>
              <div class="co-row-p" style="padding-top: 10px; border-top: 1px solid var(--bg); font-size: 16px; font-weight: 700; color: #B12704;">
-               <span>Order Total:</span><span id="coTotal">₹0</span>
+               <span>Order Total:</span><span id="coTotal">0</span>
              </div>
           </div>
         </div>
@@ -570,10 +584,10 @@
           <div style="font-size: 14px; font-weight: 700; margin-bottom: 12px; padding: 0 0 8px; border-bottom: 1px solid var(--bg);">Review your order</div>
           <div id="checkoutOrderItemsFinal"></div>
           <div class="co-totals-p">
-             <div class="co-row-p"><span>Items:</span><span id="coSubtotalFinal">₹0</span></div>
-             <div class="co-row-p"><span>Shipping & handling:</span><span id="coShippingFinal">₹0</span></div>
+             <div class="co-row-p"><span>Items:</span><span id="coSubtotalFinal">0</span></div>
+             <div class="co-row-p"><span>Shipping & handling:</span><span id="coShippingFinal">0</span></div>
              <div class="co-row-p" style="padding-top: 10px; border-top: 1px solid var(--bg); font-size: 16px; font-weight: 700; color: #B12704;">
-               <span>Order Total:</span><span id="coTotalFinal">₹0</span>
+               <span>Order Total:</span><span id="coTotalFinal">0</span>
              </div>
           </div>
         </div>
@@ -616,7 +630,7 @@
   <!-- ============ SCROLL TOP ============ -->
   <button class="scroll-top-btn" id="scrollTop"><i class="fas fa-arrow-up"></i></button>
 
-  <script src="backend-config.js?v=7.5"></script>
-  <script src="app-v7.js?v=7.5"></script>
+  <script src="backend-config.js"></script>
+  <script src="app-v7.js"></script>
 </body>
 </html>

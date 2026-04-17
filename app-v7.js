@@ -91,7 +91,7 @@
       var discount = (originalPrice > price) ? Math.round((1 - price / originalPrice) * 100) : 0;
       var pid = product.id || product.fbId || 'p' + Math.random();
       var name = product.name || 'Premium Item';
-      var image = product.image || 'https://via.placeholder.com/400x500?text=TN28+Fashion';
+      var image = (product.image || 'https://via.placeholder.com/400x500?text=TN28+Fashion').split(',')[0];
       
       var html = '<div class="product-card active" data-id="'+pid+'">';
       html += '<div class="product-image" data-action="quickview">';
@@ -176,6 +176,25 @@
         });
       }
     } catch(e) {}
+
+    // SCROLL REVEAL LOGIC
+    try {
+      var revealCallback = function(entries, observer) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+            observer.unobserve(entry.target);
+          }
+        });
+      };
+      var revealObserver = new IntersectionObserver(revealCallback, { threshold: 0.1 });
+      var reveals = document.querySelectorAll('.reveal');
+      for (var k = 0; k < reveals.length; k++) revealObserver.observe(reveals[k]);
+    } catch(e) { 
+        // Fallback for very old browsers: show everything
+        var allReveals = document.querySelectorAll('.reveal');
+        for (var m = 0; m < allReveals.length; m++) allReveals[m].classList.add('active');
+    }
   };
 
   window.initEventListeners = function() {
@@ -253,8 +272,9 @@
       }
       
       if(sResults) sResults.innerHTML = '<div class="search-results-grid">' + hits.map(function(p) {
+        var pImg = (p.image||'').split(',')[0];
         return '<div class="search-result-item" data-id="'+(p.id||p.fbId)+'" data-action="quickview" onclick="document.getElementById(\'searchOverlay\').classList.remove(\'active\')">' +
-               '<img src="'+p.image+'">' +
+               '<img src="'+pImg+'">' +
                '<div class="search-result-name">'+p.name+'</div>' +
                '<div class="search-result-price">₹'+p.price.toLocaleString()+'</div></div>';
       }).join('') + '</div>';
@@ -354,7 +374,18 @@
     currentQuickViewProduct = p;
     selectedSize = null;
     
-    document.getElementById('qvImage').src = p.image;
+    var imgs = (p.image||'').split(',');
+    document.getElementById('qvImage').src = imgs[0] || '';
+    
+    var thumbHtml = '';
+    if(imgs.length > 1 && imgs[1]) {
+       for(var k=0; k<imgs.length; k++) {
+           if(imgs[k]) thumbHtml += '<img src="'+imgs[k]+'" class="qv-thumb '+(k===0?'active':'')+'" onclick="document.getElementById(\'qvImage\').src=this.src; var th=document.querySelectorAll(\'.qv-thumb\'); for(var t=0;t<th.length;t++) th[t].classList.remove(\'active\'); this.classList.add(\'active\');">';
+       }
+    }
+    var qvThumb = document.getElementById('qvThumbnails');
+    if(qvThumb) qvThumb.innerHTML = thumbHtml;
+
     document.getElementById('qvBrand').textContent = p.brand || 'TN28';
     document.getElementById('qvName').textContent = p.name;
     document.getElementById('qvPrice').textContent = '₹' + p.price.toLocaleString();
@@ -522,8 +553,9 @@
       var it = window.cart[i];
       var q = it.qty || 1;
       subtotal += (it.price * q);
+      var itemImg = (it.image||'').split(',')[0];
       itemsHtml += '<div class="review-item" style="display:flex;gap:12px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #eee">' +
-        '<img src="'+it.image+'" style="width:40px;height:50px;object-fit:cover;border-radius:4px">' +
+        '<img src="'+itemImg+'" style="width:40px;height:50px;object-fit:cover;border-radius:4px">' +
         '<div><div style="font-size:13px;font-weight:700">'+it.name+'</div>' +
         '<div style="font-size:11px;color:#666">Size: '+(it.selectedSize || 'Standard')+' | Qty: '+q+'</div>' +
         '<div style="font-size:12px;font-weight:700">₹'+(it.price * q).toLocaleString()+'</div></div></div>';

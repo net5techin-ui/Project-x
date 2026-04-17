@@ -1,5 +1,5 @@
-/* ============================================
-   TN28 MEN'S FASHION — Premium Animated Store
+﻿/* ============================================
+   TN28 MEN'S FASHION â€” Premium Animated Store
    ============================================ */
 
 :root {
@@ -38,7 +38,7 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; overflow-x: hidden; width: 100%; -webkit-tap-highlight-color: transparent; }
-body { font-family: var(--font); color: var(--text); background: var(--bg); line-height: 1.6; -webkit-font-smoothing: antialiased; position: relative; width: 100%; min-height: 100vh; }
+body { font-family: var(--font); color: var(--text); background: var(--bg); line-height: 1.6; -webkit-font-smoothing: antialiased; position: relative; width: 100%; min-height: 75vh; }
 a, button, [role="button"], .product-card { text-decoration: none; color: inherit; cursor: pointer; touch-action: manipulation; }
 ul { list-style: none; }
 img { max-width: 100%; display: block; }
@@ -188,7 +188,7 @@ input { font-family: inherit; }
 .mobile-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; opacity: 0; visibility: hidden; transition: var(--transition); pointer-events: none; }
 .mobile-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
 .mobile-menu {
-  position: fixed; top: 0; left: 0; width: 320px; height: 100vh;
+  position: fixed; top: 0; left: 0; width: 320px; height: 75vh;
   background: var(--white); z-index: 2001; transform: translateX(-100%);
   transition: transform 0.4s var(--ease); display: flex; flex-direction: column;
   pointer-events: none;
@@ -222,7 +222,7 @@ input { font-family: inherit; }
 
 /* ============ HERO ============ */
 .hero {
-  position: relative; height: 100vh; min-height: 700px; overflow: hidden;
+  position: relative; height: 75vh; min-height: 550px; overflow: hidden;
   display: flex; align-items: center; justify-content: center;
 }
 .hero-bg-wrapper { position: absolute; inset: 0; }
@@ -308,7 +308,7 @@ input { font-family: inherit; }
 .scroll-dot { width: 3px; height: 8px; background: var(--gold); border-radius: 4px; animation: scrollDot 1.5s infinite; }
 
 /* ============ CATEGORY ICONS ============ */
-.categories-strip { padding: 48px 0 24px; }
+.categories-strip { padding: 20px 0 10px; }
 .cat-icons-row { display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; }
 .cat-icon-item { text-align: center; cursor: pointer; transition: var(--transition); }
 .cat-icon-item:hover { transform: translateY(-6px); }
@@ -323,7 +323,7 @@ input { font-family: inherit; }
 .cat-icon-item span { font-size: 13px; font-weight: 600; color: var(--text-muted); }
 
 /* ============ FEATURES STRIP ============ */
-.features-strip { padding: 24px 0 40px; }
+.features-strip { padding: 10px 0 20px; }
 .features-row { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
 .feature-pill {
   display: flex; align-items: center; gap: 8px; padding: 10px 20px;
@@ -335,7 +335,7 @@ input { font-family: inherit; }
 .feature-pill:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
 
 /* ============ SECTIONS ============ */
-.section { padding: 80px 0; }
+.section { padding: 20px 0; }
 .section-head { text-align: center; margin-bottom: 48px; }
 .section-tag {
   display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 3px;
@@ -367,7 +367,7 @@ input { font-family: inherit; }
 
 .product-image { position: relative; overflow: hidden; aspect-ratio: 3/4; background: #F1F5F9; }
 .product-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s var(--ease); }
-.product-card:hover .product-image img { transform: scale(1.08); }
+.product-card:hover .product-image img { transform: scale(1.2); }
 
 .product-badges { position: absolute; top: 12px; left: 12px; display: flex; flex-direction: column; gap: 6px; z-index: 2; }
 .product-badge { padding: 4px 12px; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; border-radius: var(--radius-full); }
@@ -650,7 +650,7 @@ input { font-family: inherit; }
 .cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 20000; opacity: 0; visibility: hidden; transition: var(--transition); pointer-events: none; backdrop-filter: blur(4px); }
 .cart-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
 .cart-sidebar {
-  position: fixed; top: 0; right: 0; width: 420px; height: 100vh; background: var(--white);
+  position: fixed; top: 0; right: 0; width: 420px; height: 75vh; background: var(--white);
   z-index: 20001; transform: translateX(100%); transition: transform 0.4s var(--ease);
   display: flex; flex-direction: column; pointer-events: none;
   -webkit-overflow-scrolling: touch;
@@ -701,7 +701,7 @@ input { font-family: inherit; }
   .modal {
     width: 100% !important;
     height: 100% !important;
-    max-height: 100vh !important;
+    max-height: 75vh !important;
     border-radius: 0 !important;
     top: 0 !important;
     left: 0 !important;
@@ -984,7 +984,7 @@ input { font-family: inherit; }
   .hero-desc { font-size: 14px; }
   .hero-ctas { flex-direction: column; width: 100%; gap: 10px; }
   .hero-ctas > a { width: 100%; text-align: center; }
-  .section { padding: 40px 0; }
+  .section { padding: 20px 0; }
   .products-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .product-card:hover { transform: none !important; }
   .product-card:active { transform: scale(0.98); }

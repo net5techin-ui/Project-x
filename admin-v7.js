@@ -5,7 +5,7 @@
   var mediaLibrary = [];
 
   window.initAdmin = function() {
-    console.log('🛡️ TN28 Admin Engine v7.0 Initialized');
+    console.log('🛡️ TN28 Admin Engine v7.2 Initialized');
     checkSecurity();
 
     // Hook up PIN Entry
@@ -20,76 +20,31 @@
       });
     }
 
-    // Bind Image Upload
-    var fileInput = document.getElementById('imageFileInput');
-    if (fileInput) {
-      fileInput.addEventListener('change', function() {
-        window.handleImageUpload(this);
-      });
-    }
+    // Bind all 4 file inputs to their corresponding URL fields
+    var fileSlots = [
+      { fileId: 'imageFileInput',  urlId: 'pImageUrl' },
+      { fileId: 'imageFileInput2', urlId: 'pImageUrl2' },
+      { fileId: 'imageFileInput3', urlId: 'pImageUrl3' },
+      { fileId: 'imageFileInput4', urlId: 'pImageUrl4' }
+    ];
 
-    var btnBrowse = document.getElementById('btnBrowse');
-    if (btnBrowse) {
-      btnBrowse.addEventListener('click', function() {
-        if (fileInput) fileInput.click();
-      });
-    }
-    
-    var btnRemove = document.getElementById('removeImage');
-    if (btnRemove) {
-        btnRemove.addEventListener('click', window.clearImagePreview);
-    }
+    fileSlots.forEach(function(slot) {
+      var fileEl = document.getElementById(slot.fileId);
+      if (fileEl) {
+        fileEl.addEventListener('change', function() {
+          window.handleImageUploadToSlot(this, slot.urlId);
+        });
+      }
+    });
 
-    // Bind URL Load
-    var btnLoadUrl = document.getElementById('btnLoadUrl');
-    var pImageUrl = document.getElementById('pImageUrl');
-    if (btnLoadUrl && pImageUrl) {
-      btnLoadUrl.addEventListener('click', function() {
-          var url = pImageUrl.value.trim();
-          if (url) {
-              document.getElementById('pImage').value = url;
-              document.getElementById('previewImg').src = url;
-              document.getElementById('uploadPlaceholder').style.display = 'none';
-              document.getElementById('uploadPreview').style.display = 'block';
-              window.showToast('Image loaded from URL', 'success');
-          }
-      });
-    }
-
-    // Bind Media Library Button
-    var btnMediaLib = document.getElementById('btnMediaLib');
-    if (btnMediaLib) {
-      btnMediaLib.addEventListener('click', function() {
-          window.switchTab('media');
-      });
-    }
-
-    // Bind Drag & Drop
-    var dropzone = document.getElementById('uploadDropzone');
-    if (dropzone) {
-      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-          dropzone.addEventListener(eventName, e => {
-              e.preventDefault();
-              e.stopPropagation();
-          }, false);
-      });
-
-      ['dragenter', 'dragover'].forEach(eventName => {
-          dropzone.addEventListener(eventName, () => dropzone.classList.add('dragover'), false);
-      });
-
-      ['dragleave', 'drop'].forEach(eventName => {
-          dropzone.addEventListener(eventName, () => dropzone.classList.remove('dragover'), false);
-      });
-
-      dropzone.addEventListener('drop', e => {
-          var dt = e.dataTransfer;
-          var files = dt.files;
-          if (files && files[0]) {
-              window.handleImageUpload({ files: files });
-          }
-      }, false);
-    }
+    // Bind live preview refresh when any URL input changes
+    ['pImageUrl','pImageUrl2','pImageUrl3','pImageUrl4'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', window.refreshImagePreviews);
+        el.addEventListener('change', window.refreshImagePreviews);
+      }
+    });
 
     var btnSync = document.getElementById('btnRefreshData');
     if (btnSync) {
@@ -100,6 +55,9 @@
         });
     }
     
+    // Clear Digital Assets Library on startup (user requested)
+    localStorage.removeItem('tn28_media');
+
     // Auto-refresh data every 30 seconds
     setInterval(function(){
       if(sessionStorage.getItem('tn28_admin_auth') === 'true') {
@@ -150,6 +108,17 @@
     
     var nav = document.querySelector('[data-tab="'+tabId+'"]');
     if(nav) nav.classList.add('active');
+
+    var titleMap = {
+      'dashboard': 'Dashboard',
+      'products': 'All Products',
+      'add-product': 'Product Management',
+      'orders': 'Customer Orders',
+      'media': 'Media Library',
+      'offers': 'Promotion Offers'
+    };
+    var pt = document.getElementById('pageTitle');
+    if(pt && titleMap[tabId]) pt.textContent = titleMap[tabId];
 
     if(tabId === 'add-product') window.resetForm();
     if(tabId === 'add-offer') window.resetOfferForm();
@@ -232,6 +201,15 @@
   window.handleSaveProduct = function(event) {
     if (event && event.preventDefault) event.preventDefault();
     
+    var img1 = document.getElementById('pImageUrl').value.trim() || document.getElementById('pImage').value;
+    var el2 = document.getElementById('pImageUrl2');
+    var el3 = document.getElementById('pImageUrl3');
+    var el4 = document.getElementById('pImageUrl4');
+    var img2 = el2 ? el2.value.trim() : '';
+    var img3 = el3 ? el3.value.trim() : '';
+    var img4 = el4 ? el4.value.trim() : '';
+    var imgStr = [img1, img2, img3, img4].filter(Boolean).join(',');
+
     var p = {
       id: document.getElementById('editId').value,
       name: document.getElementById('pName').value,
@@ -242,7 +220,7 @@
       stock: document.getElementById('pStock').value,
       fabric: document.getElementById('pFabric').value,
       description: document.getElementById('pDescription').value,
-      image: document.getElementById('pImage').value,
+      image: imgStr,
       sizes: document.getElementById('pSizes').value.split(',').map(function(s){return s.trim();}).filter(Boolean),
       colors: document.getElementById('pColors').value.split(',').map(function(s){return s.trim();}).filter(Boolean),
       isNew: document.getElementById('pIsNew').checked,
@@ -267,6 +245,11 @@
   window.editProduct = function(id) {
     var p = products.find(function(x){ return x.id == id; });
     if(!p) return;
+    
+    // IMPORTANT: Switch tab FIRST because switchTab calls resetForm() which clears inputs
+    window.switchTab('add-product');
+    document.getElementById('formTitle').textContent = 'Edit Product';
+    
     document.getElementById('editId').value = p.id;
     document.getElementById('pName').value = p.name;
     document.getElementById('pBrand').value = p.brand || '';
@@ -276,20 +259,27 @@
     document.getElementById('pStock').value = p.stock || '';
     document.getElementById('pFabric').value = p.fabric || '';
     document.getElementById('pDescription').value = p.description || '';
-    document.getElementById('pImage').value = p.image;
-    document.getElementById('pSizes').value = (p.sizes || []).join(', ');
-    document.getElementById('pColors').value = (p.colors || []).join(', ');
+    
+    var imgs = (p.image || '').split(',');
+    document.getElementById('pImage').value = imgs[0] || '';
+    var el1 = document.getElementById('pImageUrl'); if(el1) el1.value = imgs[0] || '';
+    var el2 = document.getElementById('pImageUrl2'); if(el2) el2.value = imgs[1] || '';
+    var el3 = document.getElementById('pImageUrl3'); if(el3) el3.value = imgs[2] || '';
+    var el4 = document.getElementById('pImageUrl4'); if(el4) el4.value = imgs[3] || '';
+    
+    // Support both string and array formats for sizes/colors
+    var sz = p.sizes || [];
+    document.getElementById('pSizes').value = Array.isArray(sz) ? sz.join(', ') : sz;
+    var cl = p.colors || [];
+    document.getElementById('pColors').value = Array.isArray(cl) ? cl.join(', ') : cl;
+    
     document.getElementById('pIsNew').checked = p.isNew;
     document.getElementById('pIsSale').checked = p.isSale;
     document.getElementById('pIsHot').checked = p.isHot;
     
-    document.getElementById('formTitle').textContent = 'Edit Product';
-    if(p.image) {
-       document.getElementById('previewImg').src = p.image;
-       document.getElementById('uploadPlaceholder').style.display = 'none';
-       document.getElementById('uploadPreview').style.display = 'block';
+    if(imgs[0]) {
+       window.refreshImagePreviews();
     }
-    window.switchTab('add-product');
   };
 
   window.deleteProduct = function(id) {
@@ -300,17 +290,12 @@
     });
   };
 
-  window.handleImageUpload = function(input) {
+  window.handleImageUploadToSlot = function(input, targetUrlId) {
     var file = input.files[0];
     if(!file) return;
     
-    if (file.size > 2 * 1024 * 1024) {
-        window.showToast('Optimizing large image...', 'info');
-    } else {
-        window.showToast('Processing image...', 'info');
-    }
+    window.showToast('Optimizing image...', 'info');
 
-    // Client-side resizing logic
     var reader = new FileReader();
     reader.onload = function(e) {
         var img = new Image();
@@ -322,47 +307,55 @@
             var height = img.height;
 
             if (width > height) {
-                if (width > MAX_WIDTH) {
-                    height *= MAX_WIDTH / width;
-                    width = MAX_WIDTH;
-                }
+                if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
             } else {
-                if (height > MAX_HEIGHT) {
-                    width *= MAX_HEIGHT / height;
-                    height = MAX_HEIGHT;
-                }
+                if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
             }
             canvas.width = width;
             canvas.height = height;
             var ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
             
-            // Get lower quality JPEG to save space
             var dataUrl = canvas.toDataURL('image/jpeg', 0.7);
             
-            // Now "upload" this optimized dataUrl
-            // Convert back to file if we want to use backend.uploadImage or just use dataUrl
-            // Since uploadImage has a Base64 fallback, we can just use the dataUrl directly if it fails storage
-            
-            // For now, let's try to pass the optimized file to uploadImage or just use it
-            document.getElementById('pImage').value = dataUrl;
-            document.getElementById('previewImg').src = dataUrl;
-            document.getElementById('uploadPlaceholder').style.display='none';
-            document.getElementById('uploadPreview').style.display='block';
-            window.showToast('Image optimized successfully', 'success');
-            saveToMedia(dataUrl);
+            // Set the URL field value to the base64 string
+            var targetInput = document.getElementById(targetUrlId);
+            if (targetInput) {
+                targetInput.value = dataUrl;
+                // Trigger preview refresh
+                window.refreshImagePreviews();
+                window.showToast('Image uploaded and optimized', 'success');
+            }
         };
         img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   };
 
-  window.clearImagePreview = function() {
-    document.getElementById('uploadPlaceholder').style.display='block';
-    document.getElementById('uploadPreview').style.display='none';
-    document.getElementById('pImage').value = '';
-    var input = document.getElementById('imageFileInput');
-    if (input) input.value = '';
+  window.refreshImagePreviews = function() {
+    var gallery = document.getElementById('imagePreviewGallery');
+    var strip = document.getElementById('imagePreviewStrip');
+    if (!gallery || !strip) return;
+
+    var urls = [
+      document.getElementById('pImageUrl').value.trim(),
+      document.getElementById('pImageUrl2').value.trim(),
+      document.getElementById('pImageUrl3').value.trim(),
+      document.getElementById('pImageUrl4').value.trim()
+    ].filter(Boolean);
+
+    if (urls.length === 0) {
+      gallery.style.display = 'none';
+      return;
+    }
+
+    gallery.style.display = 'block';
+    strip.innerHTML = urls.map(function(url, index) {
+      return '<div style="position:relative;aspect-ratio:3/4;background:#fff;border-radius:6px;overflow:hidden;border:1px solid #E2E8F0;">' +
+             '<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;">' +
+             '<span style="position:absolute;top:4px;left:4px;background:rgba(15,23,42,0.8);color:white;font-size:10px;padding:2px 6px;border-radius:4px;">#'+(index+1)+'</span>' +
+             '</div>';
+    }).join('');
   };
 
   window.showToast = function(msg, type) {
@@ -440,8 +433,8 @@
         '<td><span class="badge '+(o.active?'success':'danger')+'">'+(o.active?'Active':'Paused')+'</span></td>' +
         '<td>' +
           '<div class="table-actions">' +
-            '<button class="btn-edit" onclick="window.editOffer('+o.id+')"><i class="fas fa-edit"></i></button>' +
-            '<button class="btn-delete" onclick="window.deleteOffer('+o.id+')"><i class="fas fa-trash"></i></button>' +
+            '<button class="btn-edit" onclick="window.editOffer(\''+o.id+'\')"><i class="fas fa-edit"></i></button>' +
+            '<button class="btn-delete" onclick="window.deleteOffer(\''+o.id+'\')"><i class="fas fa-trash"></i></button>' +
           '</div>' +
         '</td>' +
       '</tr>';
@@ -507,6 +500,10 @@
     document.getElementById('productForm').reset(); 
     document.getElementById('editId').value=''; 
     window.clearImagePreview(); 
+    var el1 = document.getElementById('pImageUrl'); if(el1) el1.value = '';
+    var el2 = document.getElementById('pImageUrl2'); if(el2) el2.value = '';
+    var el3 = document.getElementById('pImageUrl3'); if(el3) el3.value = '';
+    var gal = document.getElementById('imagePreviewGallery'); if(gal) gal.style.display = 'none';
     document.getElementById('formTitle').textContent='Add New Product'; 
   };
 
