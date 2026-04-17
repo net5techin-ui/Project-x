@@ -61,20 +61,21 @@
     .qv-thumb.active { border-color: #0F172A; }
     
     .qv-zoom-wrap { overflow: hidden; border-radius: 12px; width: 100%; height: auto; }
-    #qvImage { transition: transform 0.3s ease; cursor: zoom-in; width: 100%; display: block; }
-    #qvImage:hover { transform: scale(1.4); }
-
-    /* Mobile Modal Overrides */
-    @media (max-width: 768px) {
-      .modal { width: 100% !important; height: 100% !important; border-radius: 0 !important; top: 0 !important; left: 0 !important; transform: translateY(100%) !important; margin: 0 !important; }
-      .modal.active { transform: translateY(0) !important; }
-      .quick-view-modal { width: 100% !important; max-width: 100% !important; height: 100% !important; }
-      .qv-content { grid-template-columns: 1fr; }
-      .qv-image { height: 300px; }
-      .qv-details { padding: 20px; }
-      .qv-close { top: 15px; right: 15px; background: rgba(0,0,0,0.4); color: #fff; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
-    }
-  </style>
+      #qvImage { transition: transform 0.3s ease; cursor: zoom-in; width: 100%; display: block; }
+      #qvImage:hover { transform: scale(1.4); }
+  
+      /* Reveal Animations */
+      .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+      .reveal.active { opacity: 1; transform: translateY(0); }
+      
+      .stagger-reveal .reveal:nth-child(1) { transition-delay: 0.1s; }
+      .stagger-reveal .reveal:nth-child(2) { transition-delay: 0.2s; }
+      .stagger-reveal .reveal:nth-child(3) { transition-delay: 0.3s; }
+      .stagger-reveal .reveal:nth-child(4) { transition-delay: 0.4s; }
+  
+      /* Placeholder Fallback Style */
+      .product-image img[src*="placehold"] { filter: grayscale(1); opacity: 0.5; }
+    </style>
   <link rel="stylesheet" crossorigin href="/assets/style-D7ktjHA9.css">
 </head>
 <body>

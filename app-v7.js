@@ -91,11 +91,11 @@
       var discount = (originalPrice > price) ? Math.round((1 - price / originalPrice) * 100) : 0;
       var pid = product.id || product.fbId || 'p' + Math.random();
       var name = product.name || 'Premium Item';
-      var image = (product.image || 'https://via.placeholder.com/400x500?text=TN28+Fashion').split(',')[0];
+      var image = (product.image || 'https://placehold.co/400x500?text=TN28+Fashion').split(',')[0].trim();
       
-      var html = '<div class="product-card active" data-id="'+pid+'">';
+      var html = '<div class="product-card reveal" data-id="'+pid+'">';
       html += '<div class="product-image" data-action="quickview">';
-      html += '<img src="'+image+'" alt="'+name+'" onerror="this.src=\'https://via.placeholder.com/400x500?text=Image+Loading...\'">';
+      html += '<img src="'+image+'" alt="'+name+'" onerror="this.src=\'https://placehold.co/400x500?text=Image+Loading...\'" loading="lazy">';
       html += '<div class="product-badges">';
       if(product.isNew) html += '<span class="product-badge new">NEW</span>';
       if(product.isSale && discount > 0) html += '<span class="product-badge sale">'+discount+'% OFF</span>';
