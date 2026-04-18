@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    TN28 MEN'S FASHION â€” Premium Animated Store
    ============================================ */
 
@@ -367,7 +367,20 @@ input { font-family: inherit; }
 
 .product-image { position: relative; overflow: hidden; aspect-ratio: 3/4; background: #F1F5F9; }
 .product-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s var(--ease); }
-.product-card:hover .product-image img { transform: scale(1.2); }
+.product-card:hover .product-image img { transform: scale(1.1); }
+
+/* Card Image Slider */
+.card-slider { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; height: 100%; width: 100%; }
+.card-slider::-webkit-scrollbar { display: none; }
+.card-slide { min-width: 100%; height: 100%; scroll-snap-align: center; position: relative; }
+.card-slide img { width: 100%; height: 100%; object-fit: cover; }
+.card-dots { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; z-index: 5; pointer-events: none; }
+.card-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.4); transition: 0.3s; }
+.card-dot.active { background: var(--white); width: 14px; border-radius: 3px; }
+.card-slider-nav { position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); display: flex; justify-content: space-between; padding: 0 8px; opacity: 0; transition: 0.3s; pointer-events: none; }
+.product-card:hover .card-slider-nav { opacity: 1; }
+.card-nav-btn { width: 28px; height: 28px; background: rgba(255,255,255,0.8); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--navy); pointer-events: auto; }
+.card-nav-btn:hover { background: var(--white); }
 
 .product-badges { position: absolute; top: 12px; left: 12px; display: flex; flex-direction: column; gap: 6px; z-index: 2; }
 .product-badge { padding: 4px 12px; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; border-radius: var(--radius-full); }

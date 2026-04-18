@@ -15,6 +15,24 @@
   var selectedPaymentMethod = 'phonepe';
   window.offers = []; // ADDED: Offers state
   
+  // --- UTILITY: Robust Image Splitting (Handles Base64 + Multiple URLs) ---
+  window.safeSplitImages = function(imageStr) {
+    if (!imageStr) return [];
+    if (typeof imageStr !== 'string') return [imageStr];
+    var parts = imageStr.split(',');
+    var finalParts = [];
+    for (var i = 0; i < parts.length; i++) {
+        var p = parts[i].trim();
+        if (p.startsWith('data:') && p.indexOf(';base64') !== -1 && i < parts.length - 1) {
+            finalParts.push(p + ',' + parts[i+1].trim());
+            i++; 
+        } else if (p) {
+            finalParts.push(p);
+        }
+    }
+    return finalParts;
+  };
+  
   // Global Error Logger for diagnostics
   window.onerror = function(msg, url, line) {
     console.error('Captured Error:', msg, 'at', line);
@@ -91,24 +109,70 @@
       var discount = (originalPrice > price) ? Math.round((1 - price / originalPrice) * 100) : 0;
       var pid = product.id || product.fbId || 'p' + Math.random();
       var name = product.name || 'Premium Item';
-      var image = (product.image || 'https://placehold.co/400x500?text=TN28+Fashion').split(',')[0].trim();
+      
+      var imageParts = window.safeSplitImages(product.image);
+      var mainImage = (imageParts.length > 0 ? imageParts[0] : 'https://placehold.co/400x500?text=TN28+Fashion');
       
       var html = '<div class="product-card active" data-id="'+pid+'">';
-      html += '<div class="product-image" data-action="quickview">';
-      html += '<img src="'+image+'" alt="'+name+'" onerror="this.src=\'https://placehold.co/400x500?text=Image+Loading...\'" loading="lazy">';
+      html += '<div class="product-image">';
+      
+      if (imageParts.length > 1) {
+          // Amazon-style slider
+          html += '<div class="card-slider" id="slider-'+pid+'" onscroll="window.syncSliderDots(\''+pid+'\')">';
+          for (var i = 0; i < imageParts.length; i++) {
+              if (imageParts[i]) {
+                  html += '<div class="card-slide" data-action="quickview"><img src="'+imageParts[i]+'" alt="'+name+'" onerror="this.src=\'https://placehold.co/400x500?text=Image+Loading...\'" loading="lazy"></div>';
+              }
+          }
+          html += '</div>';
+          // Dots
+          html += '<div class="card-dots">';
+          for (var j = 0; j < imageParts.length; j++) {
+              if (imageParts[j]) {
+                  html += '<div class="card-dot '+(j===0?'active':'')+'"></div>';
+              }
+          }
+          html += '</div>';
+          // Nav
+          html += '<div class="card-slider-nav"><button class="card-nav-btn" onclick="window.scrollSlider(\''+pid+'\', -1)"><i class="fas fa-chevron-left"></i></button><button class="card-nav-btn" onclick="window.scrollSlider(\''+pid+'\', 1)"><i class="fas fa-chevron-right"></i></button></div>';
+      } else {
+          html += '<div class="card-slide" data-action="quickview"><img src="'+mainImage+'" alt="'+name+'" onerror="this.src=\'https://placehold.co/400x500?text=Image+Loading...\'" loading="lazy"></div>';
+      }
+      
       html += '<div class="product-badges">';
       if(product.isNew) html += '<span class="product-badge new">NEW</span>';
       if(product.isSale && discount > 0) html += '<span class="product-badge sale">'+discount+'% OFF</span>';
-      html += '</div></div>';
+      html += '</div>';
+      
+      // Wishlist btn overlay
+      html += '<div class="product-actions"><button class="product-action-btn"><i class="far fa-heart"></i></button></div>';
+      
+      html += '</div>';
       html += '<div class="product-info"><div class="product-brand">'+(product.brand || 'TN28')+'</div>';
       html += '<h3 class="product-name" data-action="quickview">'+name+'</h3>';
-      html += '<div class="product-price">₹'+price.toLocaleString()+'</div></div>';
+      html += '<div class="product-price"><span class="price-current">₹'+price.toLocaleString()+'</span>';
+      if(discount > 0) html += ' <span class="price-original">₹'+originalPrice.toLocaleString()+'</span>';
+      html += '</div></div>';
       html += '<div class="product-card-footer">';
-      html += '<button class="product-add-cart" data-id="'+pid+'">Cart</button>';
-      html += '<button class="product-buy-now" data-id="'+pid+'">Buy Now</button>';
+      html += '<button class="product-add-cart" data-id="'+pid+'"><i class="fas fa-shopping-bag"></i></button>';
+      html += '<button class="product-buy-now" data-id="'+pid+'">BUY NOW</button>';
       html += '</div></div>';
       return html;
-    } catch(e) { return ''; }
+    } catch(e) { console.error("Card error", e); return ''; }
+  };
+
+  window.syncSliderDots = function(pid) {
+    var s = document.getElementById('slider-' + pid);
+    if (!s) return;
+    var idx = Math.round(s.scrollLeft / s.offsetWidth);
+    var dots = s.parentElement.querySelectorAll('.card-dot');
+    for(var i=0; i<dots.length; i++) dots[i].classList.toggle('active', i === idx);
+  };
+
+  window.scrollSlider = function(pid, dir) {
+    var s = document.getElementById('slider-' + pid);
+    if (!s) return;
+    s.scrollBy({ left: s.offsetWidth * dir, behavior: 'smooth' });
   };
 
   // --- DATA LOADING ---
@@ -123,7 +187,7 @@
         if (changed) {
           window.products = fetched;
           window.renderAll('all');
-          console.log('🔄 Data Synchronized: ' + fetched.length + ' products active');
+          console.log('🔄 Data Synchronized: \' + fetched.length + \' products active');
         }
       }
     }).catch(function(e){ console.error('Sync failed', e); });
@@ -272,9 +336,10 @@
       }
       
       if(sResults) sResults.innerHTML = '<div class="search-results-grid">' + hits.map(function(p) {
-        var pImg = (p.image||'').split(',')[0];
+        var imgs = window.safeSplitImages(p.image);
+        var pImg = (imgs.length > 0 ? imgs[0] : 'https://placehold.co/400x500?text=No+Image');
         return '<div class="search-result-item" data-id="'+(p.id||p.fbId)+'" data-action="quickview" onclick="document.getElementById(\'searchOverlay\').classList.remove(\'active\')">' +
-               '<img src="'+pImg+'">' +
+               '<img src="'+pImg+'" onerror="this.src=\'https://placehold.co/400x500?text=Image+Loading...\'">' +
                '<div class="search-result-name">'+p.name+'</div>' +
                '<div class="search-result-price">₹'+p.price.toLocaleString()+'</div></div>';
       }).join('') + '</div>';
@@ -374,7 +439,7 @@
     currentQuickViewProduct = p;
     selectedSize = null;
     
-    var imgs = (p.image||'').split(',');
+    var imgs = window.safeSplitImages(p.image);
     document.getElementById('qvImage').src = imgs[0] || '';
     
     var thumbHtml = '';
@@ -553,7 +618,8 @@
       var it = window.cart[i];
       var q = it.qty || 1;
       subtotal += (it.price * q);
-      var itemImg = (it.image||'').split(',')[0];
+      var imageParts = window.safeSplitImages(it.image);
+      var itemImg = imageParts[0] || '';
       itemsHtml += '<div class="review-item" style="display:flex;gap:12px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #eee">' +
         '<img src="'+itemImg+'" style="width:40px;height:50px;object-fit:cover;border-radius:4px">' +
         '<div><div style="font-size:13px;font-weight:700">'+it.name+'</div>' +
