@@ -13,15 +13,15 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // Aggressive Cache Buster for Admin
-    if (!location.search.includes('v=7.7')) {
-      location.replace(location.pathname + '?v=7.7' + location.hash);
+    if (!location.search.includes('v=8.0')) {
+      location.replace(location.pathname + '?v=8.0' + location.hash);
     }
     // Force a fresh state for Admin
     localStorage.removeItem('tn28_products');
     sessionStorage.removeItem('tn28_admin_auth'); // Optional: force re-login if needed
     console.log('Admin Sync Reinforced');
   </script>
-  <link rel="stylesheet" crossorigin href="/assets/admin-Dbvfnyum.css">
+  <link rel="stylesheet" crossorigin href="/assets/admin-CYLfFUVQ.css">
 </head>
 <body>
   <!-- Security Gate (Hidden initially) -->
@@ -92,7 +92,20 @@
       <!-- Products Tab -->
       <div class="tab-content" id="tab-products">
         <div class="card">
-          <div class="card-header"><h3>All Products</h3><button class="btn-admin" onclick="switchTab('add-product')"><i class="fas fa-plus"></i> Add New</button></div>
+          <div class="card-header-premium" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3 style="margin:0;">All Products</h3>
+            <button class="btn-admin btn-primary-admin" onclick="switchTab('add-product')"><i class="fas fa-plus"></i> Add New</button>
+          </div>
+
+          <!-- High-Visibility Filter Strip -->
+          <div style="display:flex; align-items:center; gap:15px; background:#F1F5F9; padding:12px 20px; border-radius:12px; margin-bottom:20px; border:1px solid #E2E8F0;">
+            <span style="font-size:12px; font-weight:700; color:#475569;"><i class="fas fa-filter"></i> QUICK FILTER:</span>
+            <div class="admin-filter-pills" style="display:flex; gap:8px;">
+              <button class="filter-pill active" onclick="window.filterAdminProducts('all', this)">All Products</button>
+              <button class="filter-pill" onclick="window.filterAdminProducts('shirt', this)">Shirts Only</button>
+              <button class="filter-pill" onclick="window.filterAdminProducts('pant', this)">Pants Only</button>
+            </div>
+          </div>
           <div class="table-wrap"><table class="admin-table"><thead><tr><th>Image</th><th>Name</th><th>Brand</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead><tbody id="productsTable"></tbody></table></div>
         </div>
       </div>

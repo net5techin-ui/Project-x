@@ -76,7 +76,7 @@
       /* Placeholder Fallback Style */
       .product-image img[src*="placehold"] { filter: grayscale(1); opacity: 0.5; }
     </style>
-  <link rel="stylesheet" crossorigin href="/assets/style-BE8bX3YJ.css">
+  <link rel="stylesheet" crossorigin href="/assets/style-Cs47Q6e-.css">
 </head>
 <body>
 
@@ -335,11 +335,11 @@
       </div>
       <div class="filter-bar" id="filterBar">
         <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="shirt">Shirts</button>
+        <button class="filter-btn" data-filter="pant">Pants</button>
         <button class="filter-btn" data-filter="formal">Formal</button>
         <button class="filter-btn" data-filter="casual">Casual</button>
-        <button class="filter-btn" data-filter="party">Party Wear</button>
-        <button class="filter-btn" data-filter="club">Club Wear</button>
-        <button class="filter-btn" data-filter="sports">Sports Wear</button>
+        <button class="filter-btn" data-filter="party">Party</button>
       </div>
       <div class="products-grid" id="featuredGrid"></div>
       <div class="section-cta"><a href="#" class="btn-dark">VIEW ALL PRODUCTS</a></div>
@@ -458,22 +458,36 @@
   <div class="modal quick-view-modal" id="quickViewModal">
     <button class="modal-close-btn" id="closeQuickView"><i class="fas fa-times"></i></button>
     <div class="qv-content">
-      <div class="qv-image">
-        <div class="qv-zoom-wrap">
-          <img src="" alt="" id="qvImage">
+      <div class="qv-image-section-premium">
+        <div class="qv-thumbnails-side" id="qvThumbnailsSide">
+          <!-- Side thumbnails injected by JS -->
         </div>
-        <div class="qv-thumbnails" id="qvThumbnails"></div>
+        <div class="qv-main-display">
+          <img src="" id="qvMainImage" onclick="window.nextQVImage()" class="qv-main-img">
+        </div>
       </div>
       <div class="qv-details">
-        <span class="qv-brand" id="qvBrand"></span>
-        <h2 class="qv-name" id="qvName"></h2>
-        <div class="qv-price-row"><span class="qv-price" id="qvPrice"></span><span class="qv-original" id="qvOriginal"></span></div>
-        <p class="qv-desc" id="qvDescription"></p>
-        <div class="qv-sizes"><span class="qv-label">Size:</span><div class="size-options" id="qvSizes"></div></div>
-        <div style="display:none;" class="qv-qty"><span class="qv-label">Qty:</span><div class="qty-selector"><button class="qty-btn" id="qvQtyMinus"></button><input type="number" value="1" min="1" max="10" id="qvQty"><button class="qty-btn" id="qvQtyPlus">+</button></div></div>
-        <div class="qv-actions">
-          <button class="btn-add-cart" id="qvAddToCart" onclick="addToCartFromQuickView()"><i class="fas fa-shopping-bag"></i> ADD TO CART</button>
-          <button class="btn-buy-now-qv" id="qvBuyNow" onclick="buyNowFromQuickView()"><i class="fas fa-bolt"></i> BUY NOW</button>
+        <div class="qv-header-info">
+          <span class="qv-brand" id="qvBrand">URBAN DESIGN</span>
+          <h2 class="qv-name" id="qvName">STRIPED SHIRT</h2>
+        </div>
+        <div class="qv-price-row">
+          <span class="qv-price" id="qvPrice">₹895</span>
+          <span class="qv-original" id="qvOriginal">₹1,000</span>
+        </div>
+        <p class="qv-tagline" id="qvDescription"></p>
+        <div class="qv-sizes">
+          <span class="qv-label">Size:</span>
+          <div class="size-options" id="qvSizes"></div>
+        </div>
+        <div class="qv-actions-premium">
+          <input type="hidden" id="qvQty" value="1">
+          <button class="btn-add-cart-premium" id="qvAddToCart" onclick="window.addToCartFromQuickView()">
+            <i class="fas fa-shopping-bag"></i> ADD TO CART
+          </button>
+          <button class="btn-buy-now-premium" id="qvBuyNow" onclick="window.buyNowFromQuickView()">
+            <i class="fas fa-bolt"></i> BUY NOW
+          </button>
         </div>
       </div>
     </div>
