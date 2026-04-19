@@ -4,7 +4,7 @@
   var defaultProducts = [];
 
   // --- STATE (Old-Style Array Cloning) ---
-  console.log('🚀 TN28 Storefront Engine v7.0 (Deep-Logic) Active');
+  console.log('🚀 TN28 Storefront Engine v11.0 (Compatibility Active)');
   window.products = defaultProducts.slice();
   window.cart = [];
   var currentQuickViewId = null; 
@@ -15,7 +15,32 @@
   var selectedPaymentMethod = 'phonepe';
   window.offers = []; // ADDED: Offers state
   
-  // --- UTILITY: Robust Image Splitting (Handles Base64 + Multiple URLs) ---
+  // --- UTILITY: Robust Device Compatibility Helpers ---
+  window.safeGetAttr = function(el, attr) {
+    if (!el || !el.getAttribute) return null;
+    return el.getAttribute(attr);
+  };
+  
+  window.safeSetAttr = function(el, attr, val) {
+    if (el && el.setAttribute) el.setAttribute(attr, val);
+  };
+
+  window.safeClosest = function(el, selector) {
+    if (!el) return null;
+    if (el.closest) {
+        try { return el.closest(selector); } catch(e) { /* ignore */ }
+    }
+    // Manual fallback for very old browsers
+    var cur = el;
+    while (cur && cur !== document.body) {
+        if (cur.matches && cur.matches(selector)) return cur;
+        if (cur.msMatchesSelector && cur.msMatchesSelector(selector)) return cur;
+        if (cur.webkitMatchesSelector && cur.webkitMatchesSelector(selector)) return cur;
+        cur = cur.parentElement;
+    }
+    return null;
+  };
+
   window.safeSplitImages = function(imageStr) {
     if (!imageStr) return [];
     if (typeof imageStr !== 'string') return [imageStr];
@@ -23,7 +48,7 @@
     var finalParts = [];
     for (var i = 0; i < parts.length; i++) {
         var p = parts[i].trim();
-        if (p.startsWith('data:') && p.indexOf(';base64') !== -1 && i < parts.length - 1) {
+        if (p.indexOf('data:') === 0 && p.indexOf(';base64') !== -1 && i < parts.length - 1) {
             finalParts.push(p + ',' + parts[i+1].trim());
             i++; 
         } else if (p) {
@@ -33,10 +58,31 @@
     return finalParts;
   };
   
-  // Global Error Logger for diagnostics
-  window.onerror = function(msg, url, line) {
-    console.error('Captured Error:', msg, 'at', line);
-    if (window.showToast) window.showToast('App Error: ' + msg.split(':')[0], 'error');
+  var errorCount = 0;
+  window.onerror = function(msg, url, line, col, error) {
+    errorCount++;
+    var stack = (error && error.stack) ? error.stack.split('\n').slice(0,2).join(' ') : '';
+    console.error('Captured Error:', msg, 'at', line, 'col', col, 'stack:', stack);
+    
+    // Silent mode for minor mobile scroll offsets
+    if (msg.indexOf('width') !== -1 || msg.indexOf('getBoundingClientRect') !== -1) return false;
+    
+    var shortMsg = msg.toString();
+    if (shortMsg.indexOf('Uncaught TypeError') !== -1) {
+        shortMsg = shortMsg.replace('Uncaught TypeError: ', '').split('\n')[0];
+    }
+    if (!shortMsg || shortMsg === 'App Error' || shortMsg === 'Uncaught TypeError' || shortMsg.indexOf('script error') !== -1) {
+        shortMsg = 'Err [' + line + ':' + col + '] ' + (url ? url.split('/').pop() : 'script');
+    }
+    shortMsg = shortMsg.substring(0, 100);
+    
+    // Safety: Stop showing toasts after 6 consecutive errors to avoid flooding
+    if (errorCount > 6) {
+        console.warn('Too many errors. UI throttling active.');
+        return false;
+    }
+    
+    if (window.showToast) window.showToast('App Error: ' + shortMsg, 'error');
     return false;
   };
 
@@ -51,15 +97,17 @@
       var og = document.getElementById('offersPageGrid');
       if (og) {
         var filteredList = [];
+        var prods = window.products || [];
         if (f === 'all') {
-            filteredList = window.products;
+            filteredList = prods;
         } else {
-            for(var i=0; i<window.products.length; i++) {
-                var pCat = (window.products[i].category || '').toLowerCase();
-                if(pCat === f.toLowerCase()) filteredList.push(window.products[i]);
+            for(var i=0; i<prods.length; i++) {
+                if (!prods[i]) continue;
+                var pCat = (prods[i].category || '').toLowerCase();
+                if(pCat === f.toLowerCase()) filteredList.push(prods[i]);
             }
         }
-        og.innerHTML = filteredList.map(window.createProductCard).join('');
+        og.innerHTML = filteredList.filter(Boolean).map(window.createProductCard).join('');
       }
     } catch (e) { console.warn('Render issue:', e); }
   };
@@ -70,7 +118,8 @@
     try {
       var news = [];
       // Show up to 20 latest products in New Arrivals
-      var displayList = window.products.slice(0, 20);
+      var prods = window.products || [];
+      var displayList = prods.slice(0, 20).filter(Boolean);
       g.innerHTML = displayList.map(window.createProductCard).join(''); 
     } catch(e) { console.error('Arrivals failed', e); }
   };
@@ -86,8 +135,16 @@
           f = window.products;
       } else {
           for(var i=0; i<window.products.length; i++) {
-              var val = (window.products[i][t] || '').toString().toLowerCase();
-              if(val === filter.toLowerCase()) f.push(window.products[i]);
+              var p = window.products[i];
+              var val = (p[t] || '').toString().toLowerCase();
+              var name = (p.name || '').toLowerCase();
+              
+              // Special case for 'shirt' and 'pant' keywords
+              if (filter === 'shirt' || filter === 'pant') {
+                  if (val.indexOf(filter) !== -1 || name.indexOf(filter) !== -1) f.push(p);
+              } else {
+                  if(val === filter.toLowerCase()) f.push(p);
+              }
           }
       }
       
@@ -96,7 +153,7 @@
         return;
       }
 
-      g.innerHTML = f.slice(0, 48).map(window.createProductCard).join(''); 
+      g.innerHTML = f.slice(0, 48).filter(Boolean).map(window.createProductCard).join(''); 
       var cards = document.querySelectorAll('.product-card');
       for (var j = 0; j < cards.length; j++) cards[j].classList.add('active');
     } catch(e) { console.error('Featured failed', e); }
@@ -114,27 +171,33 @@
       var mainImage = (imageParts.length > 0 ? imageParts[0] : 'https://placehold.co/400x500?text=TN28+Fashion');
       
       var html = '<div class="product-card active" data-id="'+pid+'">';
-      html += '<div class="product-image">';
+      html += '<div class="product-image" data-action="quickview">'; 
       
       if (imageParts.length > 1) {
-          // Amazon-style slider
-          html += '<div class="card-slider" id="slider-'+pid+'" onscroll="window.syncSliderDots(\''+pid+'\')">';
+          // Meesho-style slider: Click to advance
+          // card-slider-wrap prevents click bubbling issues
+          html += '<div class="card-slider" id="slider-'+pid+'" onscroll="window.syncSliderDots(\''+pid+'\')">'; 
           for (var i = 0; i < imageParts.length; i++) {
               if (imageParts[i]) {
                   html += '<div class="card-slide" data-action="quickview"><img src="'+imageParts[i]+'" alt="'+name+'" onerror="this.src=\'https://placehold.co/400x500?text=Image+Loading...\'" loading="lazy"></div>';
               }
           }
           html += '</div>';
-          // Dots
+          
+          // Slider Dots
           html += '<div class="card-dots">';
-          for (var j = 0; j < imageParts.length; j++) {
+          for (var j = 0; j < Math.min(imageParts.length, 5); j++) {
               if (imageParts[j]) {
                   html += '<div class="card-dot '+(j===0?'active':'')+'"></div>';
               }
           }
           html += '</div>';
-          // Nav
-          html += '<div class="card-slider-nav"><button class="card-nav-btn" onclick="window.scrollSlider(\''+pid+'\', -1)"><i class="fas fa-chevron-left"></i></button><button class="card-nav-btn" onclick="window.scrollSlider(\''+pid+'\', 1)"><i class="fas fa-chevron-right"></i></button></div>';
+          
+          // Slider Navigation Arrows
+          html += '<div class="card-slider-nav">';
+          html += '<button class="card-nav-btn" onclick="window.scrollSlider(\''+pid+'\', -1, event)"><i class="fas fa-chevron-left"></i></button>';
+          html += '<button class="card-nav-btn" onclick="window.scrollSlider(\''+pid+'\', 1, event)"><i class="fas fa-chevron-right"></i></button>';
+          html += '</div>';
       } else {
           html += '<div class="card-slide" data-action="quickview"><img src="'+mainImage+'" alt="'+name+'" onerror="this.src=\'https://placehold.co/400x500?text=Image+Loading...\'" loading="lazy"></div>';
       }
@@ -144,7 +207,6 @@
       if(product.isSale && discount > 0) html += '<span class="product-badge sale">'+discount+'% OFF</span>';
       html += '</div>';
       
-      // Wishlist btn overlay
       html += '<div class="product-actions"><button class="product-action-btn"><i class="far fa-heart"></i></button></div>';
       
       html += '</div>';
@@ -162,18 +224,41 @@
   };
 
   window.syncSliderDots = function(pid) {
-    var s = document.getElementById('slider-' + pid);
-    if (!s) return;
-    var idx = Math.round(s.scrollLeft / s.offsetWidth);
-    var dots = s.parentElement.querySelectorAll('.card-dot');
-    for(var i=0; i<dots.length; i++) dots[i].classList.toggle('active', i === idx);
+    try {
+      var s = document.getElementById('slider-' + pid);
+      if (!s) return;
+      var rect = s.getBoundingClientRect();
+      if (!rect || rect.width < 1) return;
+      var idx = Math.round(s.scrollLeft / rect.width);
+      window.safeSetAttr(s, 'data-current-index', idx);
+      var parent = s.parentElement;
+      if (!parent) return;
+      var dots = parent.querySelectorAll('.card-dot');
+      for(var i=0; i<dots.length; i++) if(dots[i]) dots[i].classList.toggle('active', i === idx);
+    } catch(err) { console.warn("Sync error", err); }
   };
 
-  window.scrollSlider = function(pid, dir) {
-    var s = document.getElementById('slider-' + pid);
-    if (!s) return;
-    s.scrollBy({ left: s.offsetWidth * dir, behavior: 'smooth' });
+  window.scrollSlider = function(pid, dir, e) {
+    try {
+        if (e) { e.stopPropagation(); e.preventDefault(); }
+        var s = document.getElementById('slider-' + pid);
+        if (!s) return;
+        var rect = s.getBoundingClientRect();
+        if (!rect || rect.width < 1) return;
+        var prevSnap = s.style.scrollSnapType;
+        s.style.scrollSnapType = 'none';
+        if (s.scrollBy) {
+            try { s.scrollBy({ left: rect.width * dir, behavior: 'smooth' }); } 
+            catch(e) { s.scrollLeft += rect.width * dir; }
+        } else {
+            s.scrollLeft += rect.width * dir;
+        }
+        setTimeout(function() { s.style.scrollSnapType = prevSnap; }, 600);
+    } catch(err) {}
   };
+
+  // Removed window.advanceSlider to allow QuickView clicks to bubble up.
+  // Sliding is now handled by native touch scroll and the navigation arrows.
 
   // --- DATA LOADING ---
   window.handleLoadProducts = function(force) {
@@ -181,13 +266,19 @@
     
     window.backend.fetchProducts(force).then(function(fetched) {
       if (fetched) {
-        // Quick check if data changed (naive length check + first element check)
-        var changed = force || !window.products || fetched.length !== window.products.length || (fetched.length > 0 && fetched[0].id !== window.products[0].id);
+        // Quick check if data changed
+        var p = window.products || [];
+        var changed = (force === true) || !window.products || fetched.length !== p.length;
+        if (!changed && fetched.length > 0 && p.length > 0) {
+            try {
+                if (fetched[0].id !== p[0].id) changed = true;
+            } catch(e) { changed = true; }
+        }
         
         if (changed) {
-          window.products = fetched;
+          window.products = fetched.filter(Boolean);
           window.renderAll('all');
-          console.log('🔄 Data Synchronized: \' + fetched.length + \' products active');
+          console.log('🔄 Data Synchronized: ' + fetched.filter(Boolean).length + ' products active');
         }
       }
     }).catch(function(e){ console.error('Sync failed', e); });
@@ -209,15 +300,20 @@
     // CLEANUP: Clear any legacy cached products to ensure device sync
     localStorage.removeItem('tn28_products');
     
-    if (window.initEventListeners) window.initEventListeners();
-    if (window.loadCart) window.loadCart();
-    if (window.updateCartBadge) window.updateCartBadge();
-    if (window.initHeroSlider) window.initHeroSlider();
-    if (window.detectLocation) window.detectLocation();
-    
-    window.renderAll('all');
-    window.handleLoadProducts(true);
-    window.handleLoadOffers(); // ADDED: load offers
+    try {
+      if (window.initEventListeners) window.initEventListeners();
+      if (window.loadCart) window.loadCart();
+      if (window.updateCartBadge) window.updateCartBadge();
+      if (window.initHeroSlider) window.initHeroSlider();
+      if (window.detectLocation) window.detectLocation();
+      
+      window.renderAll('all');
+      window.handleLoadProducts(true);
+      window.handleLoadOffers(); 
+    } catch(err) {
+      console.error('Boot error', err);
+      if (window.onerror) window.onerror(err.message || 'Boot failed', 'app-v7.js', 270);
+    }
     
     // Explicitly check for backend
     if (!window.backend) {
@@ -302,13 +398,15 @@
 
     // Filter Bar Listeners
     var fBtns = document.querySelectorAll('.filter-btn');
-    fBtns.forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        fBtns.forEach(function(b) { b.classList.remove('active'); });
-        this.classList.add('active');
-        window.renderFeatured(this.dataset.filter, 'category');
-      });
-    });
+    for (var i = 0; i < fBtns.length; i++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          for (var j = 0; j < fBtns.length; j++) fBtns[j].classList.remove('active');
+          btn.classList.add('active');
+          window.renderFeatured(window.safeGetAttr(btn, 'data-filter'), 'category');
+        });
+      })(fBtns[i]);
+    }
 
     // Search Logic
     var sInput = document.getElementById('searchInput');
@@ -324,7 +422,9 @@
       var q = this.value.toLowerCase();
       if(q.length < 2) { if(sResults) sResults.innerHTML = ''; return; }
       
-      var hits = window.products.filter(function(p) {
+      var prods = window.products || [];
+      var hits = prods.filter(function(p) {
+        if (!p) return false;
         return (p.name||'').toLowerCase().indexOf(q) !== -1 || 
                (p.brand||'').toLowerCase().indexOf(q) !== -1 ||
                (p.category||'').toLowerCase().indexOf(q) !== -1;
@@ -340,8 +440,8 @@
         var pImg = (imgs.length > 0 ? imgs[0] : 'https://placehold.co/400x500?text=No+Image');
         return '<div class="search-result-item" data-id="'+(p.id||p.fbId)+'" data-action="quickview" onclick="document.getElementById(\'searchOverlay\').classList.remove(\'active\')">' +
                '<img src="'+pImg+'" onerror="this.src=\'https://placehold.co/400x500?text=Image+Loading...\'">' +
-               '<div class="search-result-name">'+p.name+'</div>' +
-               '<div class="search-result-price">₹'+p.price.toLocaleString()+'</div></div>';
+               '<div class="search-result-name">' + (p.name || 'Item') + '</div>' +
+               '<div class="search-result-price">₹' + (Number(p.price) || 0).toLocaleString() + '</div></div>';
       }).join('') + '</div>';
     });
 
@@ -354,45 +454,70 @@
 
     // Global Product Action Listener (Event Delegation)
     document.addEventListener('click', function(e) {
-      var target = e.target;
-      
-      // Look for parent product-card or item with data-id
-      var card = target.closest('.product-card') || target.closest('.search-result-item');
-      var pid = target.getAttribute('data-id') || (card ? card.getAttribute('data-id') : null);
-      
-      if (!pid) return;
+      try {
+        var target = e.target;
+        if (!target) return;
+        
+        // Look for parent product-card or item with data-id
+        var card = window.safeClosest(target, '.product-card') || window.safeClosest(target, '.search-result-item');
+        var pid = window.safeGetAttr(target, 'data-id') || (card ? window.safeGetAttr(card, 'data-id') : null);
+        
+        if (!pid) return;
 
-      if (target.classList.contains('product-add-cart')) {
-        window.addToCart(pid);
-      } else if (target.classList.contains('product-buy-now')) {
-        window.buyNow(pid);
-      } else if (target.closest('[data-action="quickview"]')) {
-        window.openQuickView(pid);
-      }
+        if (target.classList && target.classList.contains('product-add-cart')) {
+          window.addToCart(pid);
+        } else if (target.classList && target.classList.contains('product-buy-now')) {
+          window.buyNow(pid);
+        } else if (window.safeClosest(target, '[data-action="quickview"]') || window.safeClosest(target, '.product-info') || window.safeClosest(target, '.product-name')) {
+          window.openQuickView(pid);
+        }
+      } catch(err) { console.warn('Click handling error', err); }
     });
   };
 
   window.loadCart = function() { 
-    var saved = localStorage.getItem('tn28_cart');
-    window.cart = saved ? JSON.parse(saved) : []; 
+    try {
+      var saved = localStorage.getItem('tn28_cart');
+      window.cart = saved ? JSON.parse(saved) : []; 
+      if (!Array.isArray(window.cart)) window.cart = [];
+    } catch(e) { window.cart = []; }
   };
-  window.saveCart = function() { localStorage.setItem('tn28_cart', JSON.stringify(window.cart)); window.updateCartBadge(); window.renderCart(); };
-  window.updateCartBadge = function() { var b = document.getElementById('cartBadge'); if (b) b.textContent = window.cart.length; };
+  window.saveCart = function() { 
+    try {
+      localStorage.setItem('tn28_cart', JSON.stringify(window.cart || [])); 
+      window.updateCartBadge(); 
+      window.renderCart(); 
+    } catch(e) {}
+  };
+  window.updateCartBadge = function() { 
+    var b = document.getElementById('cartBadge'); 
+    if (b) b.textContent = (window.cart && window.cart.length) || 0; 
+  };
 
   window.addToCart = function(pid) {
+    if (!pid) return;
     var p = null;
-    for(var i=0; i<window.products.length; i++) {
-        var pCheck = window.products[i];
-        if((pCheck.id||'').toString() == pid.toString() || (pCheck.fbId||'').toString() == pid.toString()) { p = pCheck; break; }
+    var prods = window.products || [];
+    var sPid = pid.toString();
+    for(var i=0; i<prods.length; i++) {
+        var pCheck = prods[i];
+        if(!pCheck) continue;
+        var checkId = (pCheck.id || pCheck.fbId || '').toString();
+        if(checkId === sPid) { p = pCheck; break; }
     }
     if (p) { window.cart.push(p); window.saveCart(); window.showToast('Added to cart', 'success'); }
   };
 
   window.buyNow = function(pid) {
+    if (!pid) return;
     var p = null;
-    for(var i=0; i<window.products.length; i++) {
-        var pCheck = window.products[i];
-        if((pCheck.id||'').toString() == pid.toString() || (pCheck.fbId||'').toString() == pid.toString()) { p = pCheck; break; }
+    var prods = window.products || [];
+    var sPid = pid.toString();
+    for(var i=0; i<prods.length; i++) {
+        var pCheck = prods[i];
+        if(!pCheck) continue;
+        var checkId = (pCheck.id || pCheck.fbId || '').toString();
+        if(checkId === sPid) { p = pCheck; break; }
     }
     if (p) { window.cart = [p]; window.saveCart(); window.openCheckoutModal(); }
   };
@@ -426,39 +551,53 @@
   window.removeFromCart = function(i) { window.cart.splice(i,1); window.saveCart(); };
 
   window.openQuickView = function(pid) {
+    if (!pid) return;
     var p = null;
-    for(var i=0; i<window.products.length; i++) {
-        var pCheck = window.products[i];
-        if((pCheck.id||'').toString() == pid.toString() || (pCheck.fbId||'').toString() == pid.toString()) { p = pCheck; break; }
+    var prods = window.products || [];
+    var sPid = pid.toString();
+    for(var i=0; i<prods.length; i++) {
+        var pCheck = prods[i];
+        if(!pCheck) continue;
+        var checkId = (pCheck.id || pCheck.fbId || '').toString();
+        if(checkId === sPid) { p = pCheck; break; }
     }
-    if (!p) {
-        console.warn('Product not found:', pid);
-        return;
-    }
+    if (!p) return;
     
     currentQuickViewProduct = p;
     selectedSize = null;
     
-    var imgs = window.safeSplitImages(p.image);
-    document.getElementById('qvImage').src = imgs[0] || '';
-    
-    var thumbHtml = '';
-    if(imgs.length > 1 && imgs[1]) {
-       for(var k=0; k<imgs.length; k++) {
-           if(imgs[k]) thumbHtml += '<img src="'+imgs[k]+'" class="qv-thumb '+(k===0?'active':'')+'" onclick="document.getElementById(\'qvImage\').src=this.src; var th=document.querySelectorAll(\'.qv-thumb\'); for(var t=0;t<th.length;t++) th[t].classList.remove(\'active\'); this.classList.add(\'active\');">';
-       }
+    var startIdx = 0;
+    var cardSlider = document.getElementById('slider-' + pid);
+    if (cardSlider) {
+        var sIdx = window.safeGetAttr(cardSlider, 'data-current-index');
+        if (sIdx) startIdx = parseInt(sIdx) || 0;
     }
-    var qvThumb = document.getElementById('qvThumbnails');
-    if(qvThumb) qvThumb.innerHTML = thumbHtml;
 
-    document.getElementById('qvBrand').textContent = p.brand || 'TN28';
+    // Setup Side Thumbnails and Main Image
+    var imageParts = window.safeSplitImages(p.image).slice(0, 6);
+    var thumbContainer = document.getElementById('qvThumbnailsSide');
+    var mainDisplay = document.getElementById('qvMainImage');
+    
+    if (thumbContainer) {
+      thumbContainer.innerHTML = imageParts.map(function(img, idx) {
+        return '<div class="qv-thumb-circle '+(idx===startIdx?'active':'')+'" onclick="window.changeQVImage(\''+img+'\', this, '+idx+')"><img src="'+img+'"></div>';
+      }).join('');
+    }
+    
+    if (mainDisplay) {
+        mainDisplay.src = imageParts[startIdx] || 'https://placehold.co/400x500?text=No+Image';
+        window.safeSetAttr(mainDisplay, 'data-current-index', startIdx);
+        window.safeSetAttr(mainDisplay, 'data-images', JSON.stringify(imageParts));
+    }
+
+    document.getElementById('qvBrand').textContent = p.brand || 'URBAN DESIGN';
     document.getElementById('qvName').textContent = p.name;
-    document.getElementById('qvPrice').textContent = '₹' + p.price.toLocaleString();
-    document.getElementById('qvDescription').textContent = p.description || 'Premium quality menswear from TN28.';
+    document.getElementById('qvPrice').textContent = '₹' + (Number(p.price)||0).toLocaleString();
+    if(document.getElementById('qvDescription')) document.getElementById('qvDescription').textContent = p.description || "PREMIUM QUALITY PURE CLASS";
     
     var orig = document.getElementById('qvOriginal');
     if (orig) {
-      orig.textContent = p.originalPrice ? '₹' + p.originalPrice.toLocaleString() : '';
+      orig.textContent = p.originalPrice ? '₹' + (Number(p.originalPrice)||0).toLocaleString() : '';
       orig.style.display = p.originalPrice ? 'inline' : 'none';
     }
 
@@ -466,16 +605,13 @@
     if (sizeContainer) {
       var sArr = [];
       try {
-        if (Array.isArray(p.sizes)) {
-          sArr = p.sizes;
-        } else if (typeof p.sizes === 'string' && p.sizes.trim().length > 0) {
-          // Handle both comma-separated and JSON string formats
+        if (Array.isArray(p.sizes)) sArr = p.sizes;
+        else if (typeof p.sizes === 'string' && p.sizes.trim().length > 0) {
           if (p.sizes.indexOf('[') !== -1) sArr = JSON.parse(p.sizes);
           else sArr = p.sizes.split(',').map(function(s){ return s.trim(); });
         }
       } catch(e) { sArr = []; }
       
-      // Filter out any empty strings
       sArr = sArr.filter(function(s){ return s && s.toString().trim() !== ''; });
 
       if (sArr.length > 0) {
@@ -483,15 +619,49 @@
           return '<div class="size-option" onclick="window.selectSize(\''+s+'\', this)">' + s + '</div>';
         }).join('');
       } else {
-        sizeContainer.innerHTML = '<div class="size-selected-msg" style="font-size:13px;color:#ef4444;font-weight:700;padding:5px;border:1px solid #ef4444;border-radius:4px;display:inline-block;">Standard Size (Free Size)</div>';
+        sizeContainer.innerHTML = '<div class="size-selected-msg" style="font-size:12px;color:#ef4444;font-weight:700;padding:4px 8px;border:1px solid #ef4444;border-radius:4px;">Standard Size</div>';
         window.selectedSize = 'Standard';
       }
     }
 
-    var qvQty = document.getElementById('qvQty');
-    if (qvQty) qvQty.value = 1;
-
     window.openModal('quickView');
+  };
+
+  window.changeQVImage = function(url, el, idx) {
+    var main = document.getElementById('qvMainImage');
+    if (!main) return;
+    
+    // Smooth transition
+    main.classList.add('changing');
+    
+    var thumbs = document.querySelectorAll('.qv-thumb-circle');
+    for(var i=0; i<thumbs.length; i++) thumbs[i].classList.remove('active');
+    if(el) el.classList.add('active');
+
+    setTimeout(function() {
+        main.src = url;
+        window.safeSetAttr(main, 'data-current-index', idx);
+        main.classList.remove('changing');
+    }, 200);
+  };
+
+  window.nextQVImage = function() {
+    var main = document.getElementById('qvMainImage');
+    if (!main) return;
+    var raw = window.safeGetAttr(main, 'data-images');
+    if (!raw) return;
+    var images = JSON.parse(raw);
+    var currentIdx = parseInt(window.safeGetAttr(main, 'data-current-index')) || 0;
+    var nextIdx = (currentIdx + 1) % images.length;
+    
+    var thumbs = document.querySelectorAll('.qv-thumb-circle');
+    window.changeQVImage(images[nextIdx], thumbs[nextIdx], nextIdx);
+  };
+
+  window.scrollQVSlider = function(dir) {
+    var s = document.getElementById('qvSlider');
+    if (!s) return;
+    s.scrollBy({ left: s.offsetWidth * dir, behavior: 'smooth' });
   };
 
   window.selectSize = function(s, el) {
@@ -550,9 +720,14 @@
   };
 
   window.showToast = function(m, t) {
-    var c = document.getElementById('toastContainer'); if (!c) return;
-    var e = document.createElement('div'); e.className = 'toast '+t;
-    e.textContent = m; c.appendChild(e); setTimeout(function(){e.remove();}, 3000);
+    console.log('Toast Triggered:', m, t);
+    var c = document.getElementById('toastContainer') || document.getElementById('adminToast'); 
+    if (!c) { console.warn('No toast container found'); return; }
+    var e = document.createElement('div'); 
+    e.className = 'toast ' + (t || 'info');
+    e.textContent = m; 
+    c.appendChild(e); 
+    setTimeout(function(){ if(e.parentNode) e.parentNode.removeChild(e); }, 3000);
   };
 
   window.initHeroSlider = function() {
@@ -743,44 +918,47 @@
   }
 
   window.renderOffers = function() {
-    var c = document.getElementById('dynamicOfferContainer');
-    if (!c) return;
-    if (!window.offers || window.offers.length === 0) {
-      c.innerHTML = '';
-      return;
-    }
-    
-    var html = '<section class="section" style="background:#fefce8; padding:40px 0; margin-bottom: 30px;"><div class="container">';
-    html += '<h2 style="text-align:center; margin-bottom: 30px; font-family:\'Playfair Display\', serif;">Active Offers</h2>';
-    html += '<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">';
-    
-    var activeOffers = window.offers.filter(function(o){ return o.active !== false; });
-    
-    for(var i=0; i<activeOffers.length; i++) {
-        var o = activeOffers[i];
-        html += '<div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; display:flex; flex-direction:column;">';
-        if (o.image) {
-            html += '<img src="'+o.image+'" style="width:100%; height:160px; object-fit:cover;" onerror="this.style.display=\'none\'">';
-        } else {
-            html += '<div style="width:100%; height:10px; background:var(--amazon-yellow);"></div>';
-        }
-        html += '<div style="padding: 20px; flex: 1; display:flex; flex-direction:column;">';
-        html += '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">';
-        html += '<h3 style="margin:0; font-size:18px; color:var(--navy);">'+o.title+'</h3>';
-        if (o.discount) html += '<span style="background:#ef4444; color:white; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:14px;">'+o.discount+'% OFF</span>';
-        html += '</div>';
-        if (o.description) html += '<p style="margin:0 0 15px; color:#475569; font-size:14px; flex:1;">'+o.description+'</p>';
-        html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; border-top:1px dashed #cbd5e1; padding-top:15px;">';
-        if (o.code) {
-            html += '<div style="font-size:12px; color:#64748b;">USE CODE: <br><strong style="color:var(--navy); font-size:16px;">'+o.code+'</strong></div>';
-        } else {
-            html += '<div></div>'; 
-        }
-        if (o.expiry) html += '<div style="font-size:12px; color:#ef4444;">Valid till<br><strong>'+o.expiry+'</strong></div>';
-        html += '</div></div></div>';
-    }
-    
-    html += '</div></div></section>';
-    c.innerHTML = html;
+    try {
+      var c = document.getElementById('dynamicOfferContainer');
+      if (!c) return;
+      if (!window.offers || !Array.isArray(window.offers) || window.offers.length === 0) {
+        c.innerHTML = '';
+        return;
+      }
+      
+      var html = '<section class="section" style="background:#fefce8; padding:40px 0; margin-bottom: 30px;"><div class="container">';
+      html += '<h2 style="text-align:center; margin-bottom: 30px; font-family:\'Playfair Display\', serif;">Active Offers</h2>';
+      html += '<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">';
+      
+      var activeOffers = window.offers.filter(function(o){ return o && o.active !== false; });
+      
+      for(var i=0; i<activeOffers.length; i++) {
+          var o = activeOffers[i];
+          if (!o) continue;
+          html += '<div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; display:flex; flex-direction:column;">';
+          if (o.image) {
+              html += '<img src="'+o.image+'" style="width:100%; height:160px; object-fit:cover;" onerror="this.style.display=\'none\'">';
+          } else {
+              html += '<div style="width:100%; height:10px; background:var(--amazon-yellow);"></div>';
+          }
+          html += '<div style="padding: 20px; flex: 1; display:flex; flex-direction:column;">';
+          html += '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">';
+          html += '<h3 style="margin:0; font-size:18px; color:var(--navy);">'+(o.title || 'Special Offer')+'</h3>';
+          if (o.discount) html += '<span style="background:#ef4444; color:white; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:14px;">'+o.discount+'% OFF</span>';
+          html += '</div>';
+          if (o.description) html += '<p style="margin:0 0 15px; color:#475569; font-size:14px; flex:1;">'+o.description+'</p>';
+          html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; border-top:1px dashed #cbd5e1; padding-top:15px;">';
+          if (o.code) {
+              html += '<div style="font-size:12px; color:#64748b;">USE CODE: <br><strong style="color:var(--navy); font-size:16px;">'+o.code+'</strong></div>';
+          } else {
+              html += '<div></div>'; 
+          }
+          if (o.expiry) html += '<div style="font-size:12px; color:#ef4444;">Valid till<br><strong>'+o.expiry+'</strong></div>';
+          html += '</div></div></div>';
+      }
+      
+      html += '</div></div></section>';
+      c.innerHTML = html;
+    } catch(err) { console.warn("Offers render issue", err); }
   };
 })();

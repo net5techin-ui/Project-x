@@ -13,8 +13,8 @@
     }
     // Hard Reset: Force fresh data across all sessions
     // Aggressive Cache Buster
-    if (!location.search.includes('v=8.0')) {
-      location.replace(location.pathname + '?v=8.0' + location.hash);
+    if (location.search.indexOf('v=11.0') === -1) {
+      location.replace(location.pathname + '?v=11.0' + location.hash);
     }
   </script>
   <title>TN28 Men's Fashion | Premium Menswear & Luxury Style</title>
@@ -30,13 +30,8 @@
   <link rel="icon" type="image/jpeg" href="/assets/logo-4y5SkQaB.jpg">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <!-- Cloud Database Connectors (CDN Fallback) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
-  <script>
-    if (!window.supabase) {
-      document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"><\/script>');
-    }
-  </script>
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js" crossorigin="anonymous"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js" crossorigin="anonymous"></script>
   <style>
     /* Critical UI Patch */
     .toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
@@ -76,7 +71,7 @@
       /* Placeholder Fallback Style */
       .product-image img[src*="placehold"] { filter: grayscale(1); opacity: 0.5; }
     </style>
-  <link rel="stylesheet" crossorigin href="/assets/style-Cs47Q6e-.css">
+  <link rel="stylesheet" crossorigin href="/assets/style-5BiLEoc1.css">
 </head>
 <body>
 
@@ -430,7 +425,7 @@
         <div class="footer-links">
           <a href="#home">Privacy Policy</a>
           <a href="#home">Terms of Service</a>
-          <a href="admin.html" class="admin-link-footer"><i class="fas fa-user-shield"></i> Admin Portal</a>
+
         </div>
         <div class="payment-icons">
           <i class="fab fa-cc-visa"></i><i class="fab fa-cc-mastercard"></i><i class="fab fa-cc-paypal"></i><i class="fab fa-google-pay"></i><i class="fab fa-apple-pay"></i>
@@ -459,11 +454,11 @@
     <button class="modal-close-btn" id="closeQuickView"><i class="fas fa-times"></i></button>
     <div class="qv-content">
       <div class="qv-image-section-premium">
-        <div class="qv-thumbnails-side" id="qvThumbnailsSide">
-          <!-- Side thumbnails injected by JS -->
-        </div>
         <div class="qv-main-display">
           <img src="" id="qvMainImage" onclick="window.nextQVImage()" class="qv-main-img">
+        </div>
+        <div class="qv-thumbnails-premium" id="qvThumbnailsSide">
+          <!-- Horizontal thumbnails injected by JS -->
         </div>
       </div>
       <div class="qv-details">
@@ -645,7 +640,7 @@
   <!-- ============ SCROLL TOP ============ -->
   <button class="scroll-top-btn" id="scrollTop"><i class="fas fa-arrow-up"></i></button>
 
-  <script src="backend-config.js?v=8.0"></script>
-  <script src="app-v7.js?v=8.0"></script>
+  <script src="backend-config.js?v=11.0"></script>
+  <script src="app-v7.js?v=11.0"></script>
 </body>
 </html>

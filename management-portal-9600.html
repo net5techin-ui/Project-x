@@ -13,8 +13,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // Aggressive Cache Buster for Admin
-    if (!location.search.includes('v=8.0')) {
-      location.replace(location.pathname + '?v=8.0' + location.hash);
+    // Hard Reset: Force fresh data across all sessions
+    // Aggressive Cache Buster
+    if (location.search.indexOf('v=9.0') === -1) {
+      location.replace(location.pathname + '?v=9.0' + location.hash);
     }
     // Force a fresh state for Admin
     localStorage.removeItem('tn28_products');
@@ -291,7 +293,7 @@
 
   <!-- Toast -->
   <div class="toast-container" id="adminToast"></div>
-  <script src="backend-config.js"></script>
-  <script src="admin-v7.js"></script>
+  <script src="backend-config.js?v=11.0"></script>
+  <script src="admin-v7.js?v=11.0"></script>
 </body>
 </html>

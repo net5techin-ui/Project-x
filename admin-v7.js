@@ -3,9 +3,54 @@
   var orders = [];
   var offers = [];
   var mediaLibrary = [];
+  var currentFilter = 'all';
+
+  
+  // --- UTILITY: Robust Device Compatibility Helpers ---
+  window.safeGetAttr = function(el, attr) {
+    if (!el || !el.getAttribute) return null;
+    return el.getAttribute(attr);
+  };
+  
+  window.safeSetAttr = function(el, attr, val) {
+    if (el && el.setAttribute) el.setAttribute(attr, val);
+  };
+
+  window.safeClosest = function(el, selector) {
+    if (!el) return null;
+    if (el.closest) {
+        try { return el.closest(selector); } catch(e) { /* ignore */ }
+    }
+    var cur = el;
+    while (cur && cur !== document.body) {
+        if (cur.matches && cur.matches(selector)) return cur;
+        if (cur.msMatchesSelector && cur.msMatchesSelector(selector)) return cur;
+        if (cur.webkitMatchesSelector && cur.webkitMatchesSelector(selector)) return cur;
+        cur = cur.parentElement;
+    }
+    return null;
+  };
+
+  // --- UTILITY: Robust Image Splitting (Handles Base64 + Multiple URLs) ---
+  window.safeSplitImages = function(imageStr) {
+    if (!imageStr) return [];
+    if (typeof imageStr !== 'string') return [imageStr];
+    var parts = imageStr.split(',');
+    var finalParts = [];
+    for (var i = 0; i < parts.length; i++) {
+        var p = parts[i].trim();
+        if (p.startsWith('data:') && p.indexOf(';base64') !== -1 && i < parts.length - 1) {
+            finalParts.push(p + ',' + parts[i+1].trim());
+            i++; 
+        } else if (p) {
+            finalParts.push(p);
+        }
+    }
+    return finalParts;
+  };
 
   window.initAdmin = function() {
-    console.log('🛡️ TN28 Admin Engine v7.2 Initialized');
+    console.log('🛡️ TN28 Admin Engine v11.0 Initialized');
     checkSecurity();
 
     // Hook up PIN Entry
@@ -170,19 +215,37 @@
     }
   }
 
+  window.filterAdminProducts = function(type, btn) {
+    currentFilter = type;
+    var btns = document.querySelectorAll('.filter-pill');
+    for(var i=0; i<btns.length; i++) btns[i].classList.remove('active');
+    if(btn) btn.classList.add('active');
+    renderProducts();
+  };
+
   function renderProducts() {
     var container = document.getElementById('productsTable');
     if(!container) return;
     
-    if (!products || products.length === 0) {
-      container.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#666">No products found in database.</td></tr>';
+    var filtered = products;
+    if (currentFilter !== 'all') {
+        filtered = products.filter(function(p) {
+            var n = (p.name || '').toLowerCase();
+            var c = (p.category || '').toLowerCase();
+            return n.indexOf(currentFilter) !== -1 || c.indexOf(currentFilter) !== -1;
+        });
+    }
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#666">No products found matching "'+currentFilter+'".</td></tr>';
       return;
     }
 
-    container.innerHTML = products.map(function(p) {
-      var pid = p.id || '';
+    container.innerHTML = filtered.map(function(p) {
+      var pid = p.id || p.fbId;
+      var imageParts = window.safeSplitImages(p.image);
       return '<tr>' +
-        '<td><img src="'+(p.image || '')+'" onerror="this.src=\'https://via.placeholder.com/40\'" style="width:40px;height:50px;object-fit:cover;border-radius:4px"></td>' +
+        '<td><img src="'+(imageParts[0] || '')+'" onerror="this.src=\'https://via.placeholder.com/40\'" style="width:40px;height:50px;object-fit:cover;border-radius:4px"></td>' +
         '<td>'+p.name+'</td>' +
         '<td>'+(p.brand||'TN28')+'</td>' +
         '<td>'+p.category+'</td>' +
@@ -260,7 +323,7 @@
     document.getElementById('pFabric').value = p.fabric || '';
     document.getElementById('pDescription').value = p.description || '';
     
-    var imgs = (p.image || '').split(',');
+    var imgs = window.safeSplitImages(p.image);
     document.getElementById('pImage').value = imgs[0] || '';
     var el1 = document.getElementById('pImageUrl'); if(el1) el1.value = imgs[0] || '';
     var el2 = document.getElementById('pImageUrl2'); if(el2) el2.value = imgs[1] || '';
@@ -509,10 +572,10 @@
 
   // Sidebar listeners
   document.addEventListener('click', function(e) {
-    var nav = e.target.closest('.nav-item');
+    var nav = window.safeClosest(e.target, '.nav-item');
     if (nav && nav.hasAttribute('data-tab')) {
       e.preventDefault();
-      window.switchTab(nav.getAttribute('data-tab'));
+      window.switchTab(window.safeGetAttr(nav, 'data-tab'));
     }
   });
 

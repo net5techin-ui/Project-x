@@ -7,8 +7,8 @@
     if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
       location.replace(`https:${location.href.substring(location.protocol.length)}`);
     }
-    if (!location.search.includes('v=7.1')) {
-      location.replace(location.pathname + '' + location.hash);
+    if (location.search.indexOf('v=11.0') === -1) {
+      location.replace(location.pathname + '?v=11.0' + location.hash);
     }
   </script>
   <title>Special Offers | TN28 Men's Fashion</title>
@@ -26,7 +26,7 @@
       document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"><\/script>');
     }
   </script>
-  <link rel="stylesheet" crossorigin href="/assets/style-Cs47Q6e-.css">
+  <link rel="stylesheet" crossorigin href="/assets/style-5BiLEoc1.css">
 </head>
 <body>
 
@@ -214,7 +214,7 @@
               <a href="index.html#featured">Our Brands</a>
               <a href="index.html">Privacy Policy</a>
               <a href="index.html">Terms of Service</a>
-              <a href="admin.html" style="opacity: 0.1">Admin Access</a>
+
             </div>
           </div>
 
@@ -443,7 +443,7 @@
   <!-- ============ SCROLL TOP ============ -->
   <button class="scroll-top-btn" id="scrollTop"><i class="fas fa-arrow-up"></i></button>
 
-  <script src="backend-config.js"></script>
-  <script src="app-v7.js"></script>
+  <script src="backend-config.js?v=11.0"></script>
+  <script src="app-v7.js?v=11.0"></script>
 </body>
 </html>
