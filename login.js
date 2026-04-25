@@ -66,7 +66,7 @@ if (authForm) {
                 showToast('Welcome back!', '#22C55E');
                 setTimeout(() => {
                     const isAdmin = email.includes('admin');
-                    window.location.href = isAdmin ? 'admin.html' : 'index.html';
+                    window.location.href = isAdmin ? 'management-portal-9600.html' : 'index.html';
                 }, 1000);
             }
 
@@ -100,6 +100,6 @@ window.addEventListener('load', async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session && window.location.pathname.includes('login.html')) {
         const isAdmin = session.user.email.includes('admin');
-        window.location.href = isAdmin ? 'admin.html' : 'index.html';
+        window.location.href = isAdmin ? 'management-portal-9600.html' : 'index.html';
     }
 });
